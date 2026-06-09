@@ -1,6 +1,6 @@
 # Intake / Warmup
 
-Every implementation prompt enters intake before code or contract changes. A new spec also enters here before it becomes work packets or implementation work.
+Repo-changing implementation prompts enter intake before code or contract changes. A new spec also enters here before it becomes work packets or implementation work. Read-only questions, status checks, and trivial commands can skip durable intake when the agent says why.
 
 The human does not need to classify risk. The harness does.
 
@@ -69,7 +69,7 @@ Use for work-packet sized behavior with bounded blast radius.
 
 Requirements:
 
-- Create or update one work packet file from `docs/templates/story.md`.
+- Create or update one work packet file from `docs/templates/story.md` when behavior, acceptance criteria, multiple files, or multiple steps change. Direct narrow patches can link existing docs instead.
 - Link relevant docs.
 - Add or update validation expectations.
 - Implement the smallest vertical slice when implementation exists.
@@ -81,7 +81,8 @@ Use when the work can affect security, data, scope, contracts, or multiple roles
 
 Requirements:
 
-- Create a work packet folder using `docs/templates/high-risk-story/` only when the packet is large enough to need `execplan.md`, `overview.md`, `design.md`, and `validation.md`.
+- Create a work packet folder using `docs/templates/high-risk-story/` only when the packet is large enough to need `execplan.md`, `overview.md`, `design.md`, and `validation.md`. For smaller high-risk fixes, compact design and validation notes in the packet or trace are acceptable.
+- Leave explicit validation evidence before closing the work. If validation is incomplete, record the gap instead of claiming completion.
 - Ask for human confirmation before implementation if direction is ambiguous.
 - Record a durable decision when behavior, architecture, authorization, data ownership, API shape, or validation requirements change meaningfully. Use a `docs/decisions/NNNN-*.md` file from `docs/templates/decision.md`, then add or refresh the durable row with `scripts/bin/harness-cli decision add`.
 - Decision text in a trace is not a durable decision record.

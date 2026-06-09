@@ -152,17 +152,19 @@ Backlog risk uses the same lane vocabulary as intake and stories: `tiny`, `norma
 
 ## Task Loop
 
-For every task:
+Use this loop for repo-changing work: implementation, docs edits, harness updates, validation changes, or any task that should leave durable evidence. For read-only questions, status checks, or trivial commands, skip durable records and say why.
 
 1. Classify the request with `docs/FEATURE_INTAKE.md`.
-2. Record the classification with `scripts/bin/harness-cli intake`; prefer `--context` for context-map paths and `--packet` when linking a work packet.
-3. Locate the affected docs and packet files.
-4. Check proof status with `scripts/bin/harness-cli query matrix`.
-5. Work only inside the selected lane: tiny, normal, or high-risk.
-6. Before finishing, ask whether work truth, validation expectations, guardrails, architecture rules, repeated failure patterns, or next-agent instructions changed; record new durable guardrails with `scripts/bin/harness-cli guardrail add`.
-7. Record a trace with `scripts/bin/harness-cli trace`, using `docs/TRACE_SPEC.md` for the expected trace tier and field depth.
-8. Review the trace score printed by `scripts/bin/harness-cli trace`; use `scripts/bin/harness-cli score-trace --id <id>` only when re-checking a specific historical trace.
-9. If harness friction was found, either fix it directly or record it with `scripts/bin/harness-cli backlog add`.
+2. Record a fresh classification with `scripts/bin/harness-cli intake`; prefer `--context` for context-map paths and `--packet` when linking a work packet. Do not reuse a previous task's intake as current evidence.
+3. Create or update a story when the work changes behavior, acceptance criteria, multiple files, or multiple steps. Tiny direct patches can skip a story when the final trace explains why.
+4. Locate the affected docs and packet files.
+5. Check proof status with `scripts/bin/harness-cli query matrix`.
+6. Work only inside the selected lane: tiny, normal, or high-risk.
+7. Verify before claiming behavior works. If proof is missing, too expensive, or failing, report the behavior as unverified, skipped, partial, or failed instead of completed.
+8. Before finishing, ask whether work truth, validation expectations, guardrails, architecture rules, repeated failure patterns, or next-agent instructions changed; record new durable guardrails with `scripts/bin/harness-cli guardrail add`.
+9. Record a fresh trace with `scripts/bin/harness-cli trace`, using `docs/TRACE_SPEC.md` for the expected trace tier and field depth. Include proof and `harness_friction`; use `none` only after checking for friction.
+10. Review the trace score printed by `scripts/bin/harness-cli trace`; use `scripts/bin/harness-cli score-trace --id <id>` only when re-checking a specific historical trace.
+11. If harness friction was found, either fix it directly or record it with `scripts/bin/harness-cli backlog add`.
 
 ## Story Verification
 

@@ -25,7 +25,7 @@ table. The schema is not changed by Phase 2.
 | `outcome` | TEXT | Yes before final response | One of `completed`, `blocked`, `partial`, or `failed`. | `completed` |
 | `duration_seconds` | INTEGER | Detailed when available | Positive integer estimate or measured duration. Leave null if unknown. | `1800` |
 | `token_estimate` | INTEGER | Detailed when available | Positive integer estimate. Leave null if unknown. | `24000` |
-| `harness_friction` | TEXT | Standard+ when friction exists; Detailed always | Free text naming what was hard, missing, ambiguous, or repeated. Use `none` only when the agent actively checked and found no friction. | `New Phase 2 docs are not in installer copy list; recorded as out-of-scope follow-up.` |
+| `harness_friction` | TEXT | Standard+ for repo-changing work; Detailed always | Free text naming what was hard, missing, ambiguous, or repeated. Use `none` only when the agent actively checked and found no friction. | `New Phase 2 docs are not in installer copy list; recorded as out-of-scope follow-up.` |
 | `notes` | TEXT | Optional | Free text for review context that does not fit other fields. | `Trace covers US-003, US-004, US-005, and US-006.` |
 
 ## Quality Tiers
@@ -57,7 +57,7 @@ Minimum fields:
 - `actions_taken` as JSON array text.
 - `files_read` as JSON array text.
 - `files_changed` as JSON array text.
-- At least one of `errors` or `harness_friction`.
+- `harness_friction` names a concrete issue or is `none` after checking; `errors` is filled when errors occurred.
 
 Required for:
 
@@ -122,7 +122,7 @@ How to write friction:
 - Include the missing capability or contradiction.
 - If the friction should become work, also add or update a backlog item with
   `scripts/bin/harness-cli backlog add`.
-- If there was no friction, use `none` only for Detailed traces.
+- If there was no friction, use `none` for Standard or Detailed traces only after actively checking.
 
 Good friction:
 
@@ -188,6 +188,10 @@ Why this is insufficient for normal-lane Phase 2 work:
 - It does not list files read or changed.
 - It does not connect to intake or stories.
 - It gives no friction or error signal.
+
+## Proof and Claim Protocol
+
+Behavioral claims in a trace should match validation evidence. If proof was not run, was too expensive, or failed, record that directly in `outcome`, `errors`, `harness_friction`, or `notes` instead of claiming completion. Claims about changed files or commands do not need extra proof beyond the trace fields themselves.
 
 ## Review Checklist
 

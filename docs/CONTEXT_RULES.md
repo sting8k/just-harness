@@ -126,4 +126,4 @@ Before final response:
 
 - Validation evidence has been read.
 - `docs/TRACE_SPEC.md` has been read for normal or high-risk tasks.
-- The final trace includes files read, files changed, outcome, and friction when applicable.
+- The final trace includes files read, files changed, outcome, proof status, and `harness_friction` as a concrete issue or `none` when repo-changing work was done.

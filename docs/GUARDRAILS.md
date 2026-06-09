@@ -27,6 +27,10 @@ scripts/bin/harness-cli query guardrails
 | active | CLI-aware | Markdown contracts and durable CLI state must agree. |
 | active | Harness-first edits | Changes in this repo adjust the framework itself, not a consumer workflow. |
 | active | Escalate only when needed | Large, risky, or read-heavy work can expand into checklist, findings, tasks, and evidence inside the same packet. |
+| active | Fresh evidence for repo-changing work | Intake and trace records should describe the current task, not stale state from a previous task; read-only or trivial work may skip records when the agent says why. |
+| active | Proof before behavioral claims | Agents should only claim behavior works when validation evidence supports it; otherwise report the behavior as unverified, skipped, partial, or failing. |
+| active | Explicit friction signal | Traces should name concrete harness friction or use `none` after checking, so a blank field is not mistaken for no friction. |
+| active | High-risk evidence without ceremony | High-risk work needs explicit design and validation evidence, but full high-risk folders are for broad work, not ceremony for its own sake. |
 
 ## Record Format
 
