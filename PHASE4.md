@@ -1,6 +1,6 @@
 #Phase 4 — Mechanical Verification: Finalized Scope
 
-**Target repo:** `repository-harness` (feature branch off `main`)
+**Target repo:** `just-harness` (feature branch off `main`)
 **Validation:** `harness-benchmark` re-run after implementation
 **Current harness maturity:** H3 partial (Phase 3 active observability complete)
 **Target maturity:** H3 (full) → H4 (partial: story verification, auto-scoring, pre-close gate)
@@ -301,7 +301,7 @@ command).
 
 | Item | Why deferred | Phase |
 |------|-------------|-------|
-| Benchmark comparison attribution (US-014) | Lives in `harness-benchmark`, not `repository-harness`. | Benchmark work |
+| Benchmark comparison attribution (US-014) | Lives in `harness-benchmark`, not `just-harness`. | Benchmark work |
 | Machine-readable tool registry | NexAU gap, lower priority than verification | Phase 5 |
 | Executable agent skills | Platform-dependent, moving target | Phase 5 |
 | Sub-agents | No use case yet | Phase 5+ |

@@ -1,6 +1,6 @@
 sk-dummse 2 Implementation Plan — Observability & Taxonomy
 
-**Target repo:** `repository-harness` (feature branch off `main`)
+**Target repo:** `just-harness` (feature branch off `main`)
 **Validation:** `harness-benchmark` re-run after implementation
 **Current harness maturity:** ~H1.5 (structured state exists, traces can be recorded, but no observability, no taxonomy, no evolution loop)
 **Target maturity:** H2 (component observability, structured traces, maturity ladder, context guidance)
@@ -41,7 +41,7 @@ Each story builds on the previous. US-006 can't define context rules without kno
 
 ### US-003: Component Taxonomy
 
-**Purpose:** Map every file and capability in `repository-harness` to a recognized framework so we can evaluate coverage, attribute failures, and do ablation studies.
+**Purpose:** Map every file and capability in `just-harness` to a recognized framework so we can evaluate coverage, attribute failures, and do ablation studies.
 
 **What gets created:** `docs/HARNESS_COMPONENTS.md`
 

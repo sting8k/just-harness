@@ -85,6 +85,10 @@ jobs:
         shell: bash
         run: |
           "dist/${{ matrix.binary }}" --help
+          "dist/${{ matrix.binary }}" intake --help
+          "dist/${{ matrix.binary }}" story --help
+          "dist/${{ matrix.binary }}" guardrail --help
+          "dist/${{ matrix.binary }}" query guardrails --help
           "dist/${{ matrix.binary }}" score-trace --help
 
       - name: Upload build artifact

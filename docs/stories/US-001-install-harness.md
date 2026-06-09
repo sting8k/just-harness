@@ -53,7 +53,7 @@ scripts, CI, tests, or product implementation.
 ## Design Notes
 
 - Commands: `scripts/install-harness.sh [--directory path] [--yes] [--force] [--merge] [--refresh-agent-shim] [--dry-run]`
-- Remote install: `curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --yes`
+- Remote install: `curl -fsSL "https://raw.githubusercontent.com/sting8k/just-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --yes`
 - Queries: none.
 - API: none.
 - Tables: none.
@@ -95,9 +95,9 @@ implementation surfaces are not scaffolded.
   paths
 - interactive conflict prompt with `3` or default choice to stop without writing
   files
-- `HARNESS_SOURCE_BASE_URL="file:///Users/themrb/Documents/personal/repository-harness" bash -s -- --directory "$REMOTE_TARGET" --yes < scripts/install-harness.sh`
-- `curl -fsSL "file:///Users/themrb/Documents/personal/repository-harness/scripts/install-harness.sh" | HARNESS_SOURCE_BASE_URL="file:///Users/themrb/Documents/personal/repository-harness" bash -s -- --directory "$TARGET" --yes`
-- `HARNESS_SOURCE_BASE_URL="file:///Users/themrb/Documents/personal/repository-harness" bash -s -- --directory "$DRY_TARGET" --yes --dry-run < scripts/install-harness.sh`
+- `HARNESS_SOURCE_BASE_URL="file:///Users/themrb/Documents/personal/just-harness" bash -s -- --directory "$REMOTE_TARGET" --yes < scripts/install-harness.sh`
+- `curl -fsSL "file:///Users/themrb/Documents/personal/just-harness/scripts/install-harness.sh" | HARNESS_SOURCE_BASE_URL="file:///Users/themrb/Documents/personal/just-harness" bash -s -- --directory "$TARGET" --yes`
+- `HARNESS_SOURCE_BASE_URL="file:///Users/themrb/Documents/personal/just-harness" bash -s -- --directory "$DRY_TARGET" --yes --dry-run < scripts/install-harness.sh`
 
 Validated behaviors: dry-run writes no files, real install creates the harness
 structure, existing `README.md` is left untouched by default, non-interactive

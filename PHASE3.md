@@ -1,6 +1,6 @@
 Phase 3 — Active Observability: Finalized Scope
 
-**Target repo:** `repository-harness` (feature branch off `main`)
+**Target repo:** `just-harness` (feature branch off `main`)
 **Validation:** `harness-benchmark` re-run after implementation
 **Current harness maturity:** H2 (achieved — Phase 2 specification layer complete)
 **Target maturity:** H2→H3 transition (active scoring, friction context, feedback loop)
@@ -242,7 +242,7 @@ change).
 | Item | Why deferred | Phase |
 |------|-------------|-------|
 | Schema migrations | The existing schema already has every column needed for US-008, US-009, US-011. No ALTER TABLE required. | — |
-| Benchmark comparison enhancement (US-010) | Lives in `harness-benchmark`, not `repository-harness`. | Benchmark work |
+| Benchmark comparison enhancement (US-010) | Lives in `harness-benchmark`, not `just-harness`. | Benchmark work |
 | Story `verify_command` field (US-012) | Useful for code stories but requires schema migration. Add when Phase 4 needs batch verification. | Phase 4 |
 | Review event schema (US-013) | No benchmark measurement, no observed pain point. | Phase 4+ |
 | Installer propagation of Phase 2 docs | US-007 (already recorded as backlog item). Separate from Phase 3 scope. | Separate PR |
