@@ -6,6 +6,16 @@ These are durable directives for the harness itself.
 
 Write short, concrete rules here when they should shape future agent behavior. Mark each guardrail `active` or `superseded`.
 
+Use the CLI when recording durable guardrails during work:
+
+```bash
+scripts/bin/harness-cli guardrail add --guardrail "<rule>" --why "<reason>"
+scripts/bin/harness-cli guardrail list --active
+scripts/bin/harness-cli query guardrails
+```
+
+`scripts/bin/harness-cli import brownfield` and `guardrail import` read the table below.
+
 ## Active Guardrails
 
 | Status | Guardrail | Why it exists |

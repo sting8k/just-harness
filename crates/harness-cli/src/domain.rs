@@ -11,6 +11,8 @@ pub enum ParseHarnessValueError {
     RiskLane(String),
     #[error("{0} must be an integer")]
     Integer(String),
+    #[error("unknown guardrail status '{0}'. Use: active or superseded")]
+    GuardrailStatus(String),
     #[error("{0} must be 0 or 1. Example: --unit 1 --integration 1 --e2e 0 --platform 0")]
     BoolFlag(String),
 }
@@ -115,6 +117,49 @@ pub struct StoryVerifyStatus {
     pub id: String,
     pub verify_command: Option<String>,
     pub last_verified_result: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum GuardrailStatus {
+    Active,
+    Superseded,
+}
+
+impl GuardrailStatus {
+    pub fn as_db_value(&self) -> &'static str {
+        match self {
+            Self::Active => "active",
+            Self::Superseded => "superseded",
+        }
+    }
+}
+
+impl FromStr for GuardrailStatus {
+    type Err = ParseHarnessValueError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match normalize_token(value).as_str() {
+            "active" => Ok(Self::Active),
+            "superseded" => Ok(Self::Superseded),
+            _ => Err(ParseHarnessValueError::GuardrailStatus(value.to_owned())),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct GuardrailRecord {
+    pub id: i64,
+    pub status: String,
+    pub guardrail: String,
+    pub rationale: Option<String>,
+    pub source: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GuardrailFilter {
+    All,
+    Active,
+    Superseded,
 }
 
 #[derive(Debug, PartialEq, Eq)]

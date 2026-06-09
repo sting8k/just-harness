@@ -16,7 +16,7 @@ The default unit of work: a single file or folder that captures goal, scope, con
 
 A work packet expressed through the `story` surface. This is the default shape for bounded work.
 
-## Feature Intake
+## Intake / Warmup
 
 The warmup and classification step that turns a prompt into a work packet shape before implementation begins.
 
@@ -42,7 +42,7 @@ The feedback workflow for Harness improvements: record predicted impact when a b
 
 ## Durable Layer
 
-The SQLite database and CLI (`scripts/bin/harness-cli`) that stores operational records (intakes, stories, decisions, backlog items, traces) as structured, queryable data. Policy docs describe how to work; the durable layer stores what happened.
+The SQLite database and CLI (`scripts/bin/harness-cli`) that stores operational records (intakes, work packets/stories, decisions, guardrails, backlog items, traces) as structured, queryable data. Policy docs describe how to work; the durable layer stores what happened.
 
 ## Work Delta
 

@@ -1,4 +1,4 @@
-# Feature Intake
+# Intake / Warmup
 
 Every implementation prompt enters intake before code or contract changes. A new spec also enters here before it becomes work packets or implementation work.
 

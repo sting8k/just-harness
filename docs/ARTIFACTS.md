@@ -38,6 +38,7 @@ For read-heavy, audit-like, or multi-repo work, keep the same packet and add onl
 
 - `story add/update/verify` works with work packet ids.
 - `decision add/verify` works with decision ids and doc paths.
+- `guardrail add/list/import` works with durable project directives from `docs/GUARDRAILS.md`.
 - `backlog` is for harness friction only.
 - `trace` records execution evidence.
 - `query matrix` remains the proof view.

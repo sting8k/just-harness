@@ -39,11 +39,11 @@ Status values:
 | --- | --- | --- | --- |
 | System prompts | `AGENTS.md` plus Harness policy docs | Covered | `AGENTS.md` is the stable shim; `docs/HARNESS.md`, `docs/FEATURE_INTAKE.md`, and `docs/CONTEXT_RULES.md` carry evolving operating instructions. |
 | Tool descriptions | `scripts/README.md`, `docs/HARNESS.md`, `docs/TRACE_SPEC.md`, CLI help from `crates/harness-cli/src/interface.rs` | Partial | Commands, story verification, and trace scoring are documented, but there is no standalone tool schema or generated command reference. |
-| Tool implementations | `scripts/bin/harness-cli`, `crates/harness-cli/*`, `scripts/schema/001-init.sql`, `scripts/schema/002-story-verify.sql` | Covered | The Rust CLI is the primary durable-layer implementation and stable repo-local entrypoint. |
-| Middleware | installer safety logic, feature intake workflow | Partial | The installer and intake process mediate work, but there is no runtime middleware enforcing policies. |
+| Tool implementations | `scripts/bin/harness-cli`, `crates/harness-cli/*`, `scripts/schema/001-init.sql`, `scripts/schema/002-story-verify.sql`, `scripts/schema/003-guardrails.sql` | Covered | The Rust CLI is the primary durable-layer implementation and stable repo-local entrypoint. |
+| Middleware | installer safety logic, intake/warmup workflow | Partial | The installer and intake process mediate work, but there is no runtime middleware enforcing policies. |
 | Skills | `docs/templates/*`, `docs/FEATURE_INTAKE.md`, `docs/CONTEXT_RULES.md`, `docs/TRACE_SPEC.md` | Partial | Reusable procedures exist as markdown, not executable or installable agent skills. |
 | Sub-agents | None in this repository | Missing | No delegated specialist agents or sub-agent protocols exist. |
-| Long-term memory | `harness.db`, `docs/decisions/*`, `docs/stories/*`, `docs/HARNESS_BACKLOG.md`, `docs/GLOSSARY.md` | Covered | Durable records and markdown decisions preserve task history and project vocabulary. |
+| Long-term memory | `harness.db`, `docs/GUARDRAILS.md`, `docs/decisions/*`, `docs/stories/*`, `docs/HARNESS_BACKLOG.md`, `docs/GLOSSARY.md` | Covered | Durable records, guardrails, and markdown decisions preserve task history and project vocabulary. |
 
 ## File Inventory
 
@@ -116,6 +116,7 @@ one Runtime Substrate responsibility.
 | `scripts/build-harness-cli-release.sh` | Verification | Tool access |
 | `scripts/schema/001-init.sql` | Task state | Observability, project memory |
 | `scripts/schema/002-story-verify.sql` | Verification | Task state, project memory |
+| `scripts/schema/003-guardrails.sql` | Project memory | Task state, observability |
 | `.github/ISSUE_TEMPLATE/agent-failure-case.md` | Failure attribution | Entropy auditing |
 | `.github/ISSUE_TEMPLATE/pattern-request.md` | Entropy auditing | Intervention recording |
 | `.github/ISSUE_TEMPLATE/real-world-example.md` | Project memory | Intervention recording |

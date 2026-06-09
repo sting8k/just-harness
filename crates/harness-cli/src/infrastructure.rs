@@ -8,13 +8,13 @@ use thiserror::Error;
 
 use crate::application::{
     BacklogAddInput, BacklogCloseInput, BrownfieldImportResult, DecisionAddInput,
-    DecisionVerifyResult, HarnessContext, InitResult, IntakeInput, MigrateResult, QueryTable,
-    StoryAddInput, StoryUpdateInput, StoryVerifyResult, TraceInput,
+    DecisionVerifyResult, GuardrailAddInput, HarnessContext, InitResult, IntakeInput,
+    MigrateResult, QueryTable, StoryAddInput, StoryUpdateInput, StoryVerifyResult, TraceInput,
 };
 use crate::domain::{
     normalize_token, score_trace, BacklogFilter, BacklogRecord, DecisionRecord, FrictionRecord,
-    HarnessStats, IntakeRecord, RiskLane, StoryMatrixRecord, StoryVerifyStatus, TraceRecord,
-    TraceScoreResult, TraceScoreSource,
+    GuardrailFilter, GuardrailRecord, HarnessStats, IntakeRecord, RiskLane, StoryMatrixRecord,
+    StoryVerifyStatus, TraceRecord, TraceScoreResult, TraceScoreSource,
 };
 
 pub type Result<T> = std::result::Result<T, HarnessInfraError>;
@@ -35,6 +35,8 @@ pub enum HarnessInfraError {
     StoryNotFound(String),
     #[error("backlog close: backlog item '{0}' not found")]
     BacklogNotFound(i64),
+    #[error("guardrail add: nothing to add")]
+    EmptyGuardrail,
     #[error("trace '{0}' not found")]
     TraceNotFound(i64),
     #[error("no traces found")]
@@ -57,6 +59,9 @@ pub trait HarnessRepository {
     fn verify_story(&self, id: &str) -> Result<StoryVerifyResult>;
     fn add_decision(&self, input: DecisionAddInput) -> Result<()>;
     fn verify_decision(&self, id: &str) -> Result<DecisionVerifyResult>;
+    fn add_guardrail(&self, input: GuardrailAddInput) -> Result<i64>;
+    fn import_guardrails(&self) -> Result<usize>;
+    fn query_guardrails(&self, filter: GuardrailFilter) -> Result<Vec<GuardrailRecord>>;
     fn add_backlog(&self, input: BacklogAddInput) -> Result<i64>;
     fn close_backlog(&self, input: BacklogCloseInput) -> Result<()>;
     fn record_trace(&self, input: TraceInput) -> Result<i64>;
@@ -331,6 +336,35 @@ impl SqliteHarnessRepository {
         Ok(decision_count)
     }
 
+    fn import_guardrails_from_markdown(&self, connection: &Connection) -> Result<usize> {
+        let guardrails_path = self.repo_root.join("docs/GUARDRAILS.md");
+        if !guardrails_path.exists() {
+            return Ok(0);
+        }
+
+        let content = fs::read_to_string(guardrails_path)?;
+        let items = guardrail_items(&content);
+        let mut imported = 0;
+        for item in items {
+            if item.guardrail.is_empty() || item.guardrail == "Guardrail" {
+                continue;
+            }
+            let status = normalize_guardrail_status(&item.status);
+            let rationale = empty_to_none(item.rationale);
+            connection.execute(
+                "INSERT INTO guardrail (status, guardrail, rationale, source, notes)
+                 SELECT ?1, ?2, ?3, 'docs/GUARDRAILS.md',
+                    'Imported from docs/GUARDRAILS.md by harness import brownfield.'
+                 WHERE NOT EXISTS (
+                    SELECT 1 FROM guardrail WHERE guardrail=?2
+                 );",
+                params![status, item.guardrail, rationale],
+            )?;
+            imported += 1;
+        }
+        Ok(imported)
+    }
+
     fn import_backlog(&self, connection: &Connection) -> Result<usize> {
         let backlog_path = self.repo_root.join("docs/HARNESS_BACKLOG.md");
         if !backlog_path.exists() {
@@ -418,12 +452,14 @@ impl HarnessRepository for SqliteHarnessRepository {
         let connection = self.open_existing()?;
         let stories = self.import_matrix(&connection)?;
         let decisions = self.import_decisions(&connection)?;
+        let guardrails = self.import_guardrails_from_markdown(&connection)?;
         let backlog_items = self.import_backlog(&connection)?;
 
         Ok(BrownfieldImportResult {
             stories,
             decisions,
             backlog_items,
+            guardrails,
         })
     }
 
@@ -594,6 +630,66 @@ impl HarnessRepository for SqliteHarnessRepository {
             command: verify_command,
             result,
         })
+    }
+
+    fn add_guardrail(&self, input: GuardrailAddInput) -> Result<i64> {
+        let guardrail = input.guardrail.trim().to_owned();
+        if guardrail.is_empty() {
+            return Err(HarnessInfraError::EmptyGuardrail);
+        }
+
+        let connection = self.open_existing()?;
+        connection.execute(
+            "INSERT INTO guardrail (status, guardrail, rationale, source, notes)
+             VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(guardrail) DO UPDATE SET
+                status=excluded.status,
+                rationale=excluded.rationale,
+                source=COALESCE(excluded.source, guardrail.source),
+                notes=excluded.notes;",
+            params![
+                input.status.as_db_value(),
+                &guardrail,
+                input.rationale,
+                input.source,
+                input.notes,
+            ],
+        )?;
+        let id = connection.query_row(
+            "SELECT id FROM guardrail WHERE guardrail=?1;",
+            params![&guardrail],
+            |row| row.get(0),
+        )?;
+        Ok(id)
+    }
+
+    fn import_guardrails(&self) -> Result<usize> {
+        let connection = self.open_existing()?;
+        self.import_guardrails_from_markdown(&connection)
+    }
+
+    fn query_guardrails(&self, filter: GuardrailFilter) -> Result<Vec<GuardrailRecord>> {
+        let connection = self.open_existing()?;
+        let where_clause = match filter {
+            GuardrailFilter::All => "",
+            GuardrailFilter::Active => "WHERE status = 'active'",
+            GuardrailFilter::Superseded => "WHERE status = 'superseded'",
+        };
+        let sql = format!(
+            "SELECT id, status, guardrail, rationale, source
+             FROM guardrail {where_clause} ORDER BY status, id;"
+        );
+        let mut statement = connection.prepare(&sql)?;
+        let rows = statement.query_map([], |row| {
+            Ok(GuardrailRecord {
+                id: row.get(0)?,
+                status: row.get(1)?,
+                guardrail: row.get(2)?,
+                rationale: row.get(3)?,
+                source: row.get(4)?,
+            })
+        })?;
+        collect_rows(rows)
     }
 
     fn add_backlog(&self, input: BacklogAddInput) -> Result<i64> {
@@ -947,6 +1043,20 @@ struct MatrixColumns {
 }
 
 #[derive(Debug, Default)]
+struct GuardrailMarkdownItem {
+    status: String,
+    guardrail: String,
+    rationale: String,
+}
+
+#[derive(Debug)]
+struct GuardrailColumns {
+    status: Option<usize>,
+    guardrail: Option<usize>,
+    rationale: Option<usize>,
+}
+
+#[derive(Debug, Default)]
 struct BacklogMarkdownItem {
     title: String,
     discovered_while: String,
@@ -954,6 +1064,27 @@ struct BacklogMarkdownItem {
     suggested_improvement: String,
     risk: String,
     status: String,
+}
+
+impl GuardrailColumns {
+    fn from_header(fields: &[String]) -> Self {
+        let mut columns = Self {
+            status: None,
+            guardrail: None,
+            rationale: None,
+        };
+
+        for (index, field) in fields.iter().enumerate() {
+            match normalize_token(field).as_str() {
+                "status" => columns.status = Some(index),
+                "guardrail" => columns.guardrail = Some(index),
+                "why_it_exists" | "rationale" | "why" => columns.rationale = Some(index),
+                _ => {}
+            }
+        }
+
+        columns
+    }
 }
 
 impl MatrixColumns {
@@ -1066,6 +1197,14 @@ fn proof_from_cell(value: &str) -> i64 {
     }
 }
 
+fn normalize_guardrail_status(value: &str) -> String {
+    match normalize_token(value).as_str() {
+        "superseded" => "superseded",
+        _ => "active",
+    }
+    .to_owned()
+}
+
 fn normalize_story_status(value: &str) -> String {
     match normalize_token(value).as_str() {
         "planned" => "planned",
@@ -1168,6 +1307,104 @@ fn backlog_items(content: &str) -> Vec<BacklogMarkdownItem> {
     items
 }
 
+fn guardrail_items(content: &str) -> Vec<GuardrailMarkdownItem> {
+    let table_items = guardrail_table_items(content);
+    if !table_items.is_empty() {
+        return table_items;
+    }
+
+    guardrail_section_items(content)
+}
+
+fn guardrail_table_items(content: &str) -> Vec<GuardrailMarkdownItem> {
+    let mut columns: Option<GuardrailColumns> = None;
+    let mut items = Vec::new();
+
+    for line in content.lines() {
+        if !line.trim_start().starts_with('|') {
+            continue;
+        }
+
+        let fields = markdown_table_fields(line);
+        if fields.len() < 2 {
+            continue;
+        }
+
+        if columns.is_none() {
+            let candidate = GuardrailColumns::from_header(&fields);
+            if candidate.status.is_some() && candidate.guardrail.is_some() {
+                columns = Some(candidate);
+            }
+            continue;
+        }
+
+        let columns = columns.as_ref().expect("guardrail columns discovered");
+        let guardrail = field_at(&fields, columns.guardrail).unwrap_or_default();
+        let token = normalize_token(&guardrail);
+        if matches!(token.as_str(), "" | "guardrail")
+            || guardrail.chars().all(|character| character == '-')
+        {
+            continue;
+        }
+
+        items.push(GuardrailMarkdownItem {
+            status: field_at(&fields, columns.status).unwrap_or_default(),
+            guardrail,
+            rationale: field_at(&fields, columns.rationale).unwrap_or_default(),
+        });
+    }
+
+    items
+}
+
+fn guardrail_section_items(content: &str) -> Vec<GuardrailMarkdownItem> {
+    let mut in_items = false;
+    let mut current_heading = String::new();
+    let mut current = GuardrailMarkdownItem::default();
+    let mut items = Vec::new();
+
+    for line in content.lines() {
+        let trimmed = line.trim();
+        if trimmed == "## Items" {
+            in_items = true;
+            current_heading.clear();
+            continue;
+        }
+        if !in_items {
+            continue;
+        }
+
+        if let Some(heading) = trimmed.strip_prefix("### ") {
+            let normalized = normalize_token(heading);
+            if normalized == "guardrail" && !current.guardrail.is_empty() {
+                items.push(current);
+                current = GuardrailMarkdownItem::default();
+            }
+            current_heading = normalized;
+            continue;
+        }
+
+        if trimmed.is_empty() || current_heading.is_empty() {
+            continue;
+        }
+
+        let target = match current_heading.as_str() {
+            "status" => &mut current.status,
+            "guardrail" => &mut current.guardrail,
+            "why_it_exists" => &mut current.rationale,
+            _ => continue,
+        };
+        if target.is_empty() {
+            *target = trimmed.to_owned();
+        }
+    }
+
+    if !current.guardrail.is_empty() {
+        items.push(current);
+    }
+    items
+}
+
 fn empty_to_none(value: String) -> Option<String> {
     if value.is_empty() {
         None
@@ -1207,10 +1444,13 @@ mod tests {
 
     use super::*;
     use crate::application::{
-        BacklogAddInput, BacklogCloseInput, DecisionAddInput, IntakeInput, StoryAddInput,
-        StoryUpdateInput, TraceInput,
+        BacklogAddInput, BacklogCloseInput, DecisionAddInput, GuardrailAddInput, IntakeInput,
+        StoryAddInput, StoryUpdateInput, TraceInput,
     };
-    use crate::domain::{BacklogFilter, BoolFlag, CsvList, InputType, RiskLane, TraceQualityTier};
+    use crate::domain::{
+        BacklogFilter, BoolFlag, CsvList, GuardrailFilter, GuardrailStatus, InputType, RiskLane,
+        TraceQualityTier,
+    };
 
     fn test_repository() -> (TempDir, SqliteHarnessRepository) {
         let temp_dir = tempfile::tempdir().unwrap();
@@ -1245,7 +1485,7 @@ mod tests {
         assert_eq!(repository.query_stats().unwrap().intakes, 0);
         let connection = repository.open_existing().unwrap();
         let schema_version = SqliteHarnessRepository::schema_version(&connection).unwrap();
-        assert_eq!(schema_version, 2);
+        assert_eq!(schema_version, 3);
         let story_columns = story_columns(&connection);
         assert!(story_columns.contains(&"verify_command".to_owned()));
         assert!(story_columns.contains(&"last_verified_at".to_owned()));
@@ -1262,11 +1502,11 @@ mod tests {
         let result = repository.migrate().unwrap();
 
         assert_eq!(result.current_version, 1);
-        assert_eq!(result.applied, vec![2]);
+        assert_eq!(result.applied, vec![2, 3]);
         let connection = repository.open_existing().unwrap();
         assert_eq!(
             SqliteHarnessRepository::schema_version(&connection).unwrap(),
-            2
+            3
         );
         let story_columns = story_columns(&connection);
         assert!(story_columns.contains(&"verify_command".to_owned()));
@@ -1306,6 +1546,29 @@ mod tests {
             )
             .unwrap();
         assert_eq!(missing_lists_are_null, (false, true));
+    }
+
+    #[test]
+    fn records_and_queries_guardrails() {
+        let (_temp_dir, repository) = test_repository();
+        repository.init().unwrap();
+
+        let id = repository
+            .add_guardrail(GuardrailAddInput {
+                status: GuardrailStatus::Active,
+                guardrail: "Keep proof close to code".to_owned(),
+                rationale: Some("Agents need a short path from change to evidence.".to_owned()),
+                source: Some("docs/GUARDRAILS.md".to_owned()),
+                notes: None,
+            })
+            .unwrap();
+
+        let guardrails = repository.query_guardrails(GuardrailFilter::All).unwrap();
+        assert_eq!(id, 1);
+        assert_eq!(guardrails.len(), 1);
+        assert_eq!(guardrails[0].guardrail, "Keep proof close to code");
+        assert_eq!(guardrails[0].status, "active");
+        assert_eq!(guardrails[0].source.as_deref(), Some("docs/GUARDRAILS.md"));
     }
 
     #[test]
@@ -1654,6 +1917,19 @@ mod tests {
         let repo_root = temp_dir.path().join("repo");
         fs::create_dir_all(repo_root.join("docs/decisions")).unwrap();
         fs::write(
+            repo_root.join("docs/GUARDRAILS.md"),
+            r#"# Guardrails
+
+## Active Guardrails
+
+| Status | Guardrail | Why it exists |
+| --- | --- | --- |
+| active | Prefer explicit contracts. | Agents should not infer policy from hidden context. |
+| superseded | Stories are work packets. | Keep the agent on the current terminology. |
+"#,
+        )
+        .unwrap();
+        fs::write(
             repo_root.join("docs/TEST_MATRIX.md"),
             r#"# Test Matrix
 
@@ -1751,9 +2027,11 @@ implemented
                 stories: 1,
                 decisions: 1,
                 backlog_items: 2,
+                guardrails: 2,
             }
         );
         assert_eq!(second.backlog_items, 2);
+        assert_eq!(second.guardrails, 2);
 
         let matrix = repository.query_matrix().unwrap();
         assert_eq!(matrix[0].id, "US-010");
@@ -1766,6 +2044,13 @@ implemented
         let decisions = repository.query_decisions().unwrap();
         assert_eq!(decisions[0].id, "0007-test-decision");
         assert_eq!(decisions[0].status, "accepted");
+
+        let guardrails = repository.query_guardrails(GuardrailFilter::All).unwrap();
+        assert_eq!(guardrails.len(), 2);
+        assert_eq!(guardrails[0].guardrail, "Prefer explicit contracts.");
+        assert_eq!(guardrails[0].status, "active");
+        assert_eq!(guardrails[1].guardrail, "Stories are work packets.");
+        assert_eq!(guardrails[1].status, "superseded");
 
         let backlog = repository.query_backlog(BacklogFilter::All).unwrap();
         assert_eq!(backlog.len(), 2);

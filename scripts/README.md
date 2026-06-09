@@ -10,15 +10,16 @@ projects use the prebuilt binary at `scripts/bin/harness-cli` on macOS/Linux or
 
 ```bash
 scripts/bin/harness-cli init          # Create the database
-scripts/bin/harness-cli intake ...    # Record a feature intake classification
-scripts/bin/harness-cli story ...     # Add or update a story (test matrix row)
+scripts/bin/harness-cli intake ...    # Record an intake/warmup classification
+scripts/bin/harness-cli story ...     # Add or update a work packet (story row)
 scripts/bin/harness-cli story update --id US-001 --unit 1 --integration 1 --e2e 0 --platform 0
-scripts/bin/harness-cli story verify US-001  # Run the story's verify_command
+scripts/bin/harness-cli story verify US-001  # Run the packet's verify_command
 scripts/bin/harness-cli decision ...  # Add a decision or run its verification
+scripts/bin/harness-cli guardrail ... # Add, list, or import project guardrails
 scripts/bin/harness-cli backlog ...   # Add or close a backlog item
 scripts/bin/harness-cli trace ...     # Record and auto-score an agent execution trace
 scripts/bin/harness-cli score-trace   # Score a trace against TRACE_SPEC.md tiers
-scripts/bin/harness-cli query ...     # Query harness data, including backlog --open/--closed
+scripts/bin/harness-cli query ...     # Query harness data, including guardrails and backlog
 scripts/bin/harness-cli query matrix --numeric  # Show proof flags as 1/0
 scripts/bin/harness-cli migrate       # Apply pending schema migrations
 scripts/bin/harness-cli --version     # Print the installed CLI version
@@ -31,7 +32,13 @@ full usage. On Windows, use the same commands through
 Proof flags on `story update` are numeric booleans: use `1` for yes and `0` for
 no. `story verify <id>` runs the configured `verify_command`; it does not accept
 proof flags. Configure the command with `story add/update --verify`, run
-`story verify <id>`, then update proof flags with `story update`.
+`story verify <id>`, then update proof flags with `story update`. The `story`
+command stores work packet state for compatibility with existing `US-xxx` IDs.
+
+Intake accepts `--docs`/`--story` for backward compatibility and visible aliases
+`--context`/`--packet` for the current warmup model. Guardrails can be captured
+with `guardrail add --guardrail "<rule>" --why "<reason>"` and queried with
+`guardrail list` or `query guardrails`.
 
 Backlog `--risk` uses Harness lanes, not severity words: use `tiny`, `normal`,
 or `high-risk`. Use `tiny` instead of `low`. `query matrix` defaults to
@@ -61,12 +68,16 @@ scripts/bin/harness-cli story update ...
 scripts/bin/harness-cli story verify ...
 scripts/bin/harness-cli decision add ...
 scripts/bin/harness-cli decision verify ...
+scripts/bin/harness-cli guardrail add ...
+scripts/bin/harness-cli guardrail list ...
+scripts/bin/harness-cli guardrail import
 scripts/bin/harness-cli backlog add ...
 scripts/bin/harness-cli backlog close ...
 scripts/bin/harness-cli trace ...
 scripts/bin/harness-cli score-trace
 scripts/bin/harness-cli query matrix
 scripts/bin/harness-cli query backlog
+scripts/bin/harness-cli query guardrails
 scripts/bin/harness-cli query decisions
 scripts/bin/harness-cli query intakes
 scripts/bin/harness-cli query traces
@@ -76,10 +87,9 @@ scripts/bin/harness-cli query sql ...
 ```
 
 `scripts/bin/harness-cli import brownfield` seeds or refreshes the durable database
-from existing Harness v0 markdown in `docs/TEST_MATRIX.md`,
-`docs/decisions/`, and `docs/HARNESS_BACKLOG.md`. This keeps already-installed
-Harness repos on the Rust CLI path without losing their populated operating
-docs.
+from existing Harness v0 markdown in `docs/TEST_MATRIX.md`, `docs/decisions/`,
+`docs/GUARDRAILS.md`, and `docs/HARNESS_BACKLOG.md`. This keeps already-installed
+Harness repos on the Rust CLI path without losing their populated operating docs.
 
 ## Installer
 

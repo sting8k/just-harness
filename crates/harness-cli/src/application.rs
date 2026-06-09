@@ -1,9 +1,9 @@
 use std::path::PathBuf;
 
 use crate::domain::{
-    BacklogFilter, BacklogRecord, BoolFlag, CsvList, DecisionRecord, FrictionRecord, HarnessStats,
-    InputType, IntakeRecord, RiskLane, StoryMatrixRecord, StoryVerifyStatus, TraceRecord,
-    TraceScoreResult,
+    BacklogFilter, BacklogRecord, BoolFlag, CsvList, DecisionRecord, FrictionRecord,
+    GuardrailFilter, GuardrailRecord, GuardrailStatus, HarnessStats, InputType, IntakeRecord,
+    RiskLane, StoryMatrixRecord, StoryVerifyStatus, TraceRecord, TraceScoreResult,
 };
 use crate::infrastructure::{HarnessRepository, SqliteHarnessRepository};
 
@@ -55,6 +55,15 @@ pub struct DecisionAddInput {
     pub doc_path: Option<String>,
     pub verify_command: Option<String>,
     pub predicted_impact: Option<String>,
+    pub notes: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct GuardrailAddInput {
+    pub status: GuardrailStatus,
+    pub guardrail: String,
+    pub rationale: Option<String>,
+    pub source: Option<String>,
     pub notes: Option<String>,
 }
 
@@ -145,6 +154,14 @@ impl HarnessService {
         self.repository.verify_decision(id)
     }
 
+    pub fn add_guardrail(&self, input: GuardrailAddInput) -> crate::infrastructure::Result<i64> {
+        self.repository.add_guardrail(input)
+    }
+
+    pub fn import_guardrails(&self) -> crate::infrastructure::Result<usize> {
+        self.repository.import_guardrails()
+    }
+
     pub fn add_backlog(&self, input: BacklogAddInput) -> crate::infrastructure::Result<i64> {
         self.repository.add_backlog(input)
     }
@@ -181,6 +198,13 @@ impl HarnessService {
 
     pub fn query_decisions(&self) -> crate::infrastructure::Result<Vec<DecisionRecord>> {
         self.repository.query_decisions()
+    }
+
+    pub fn query_guardrails(
+        &self,
+        filter: GuardrailFilter,
+    ) -> crate::infrastructure::Result<Vec<GuardrailRecord>> {
+        self.repository.query_guardrails(filter)
     }
 
     pub fn query_intakes(&self) -> crate::infrastructure::Result<Vec<IntakeRecord>> {
@@ -222,6 +246,7 @@ pub struct BrownfieldImportResult {
     pub stories: usize,
     pub decisions: usize,
     pub backlog_items: usize,
+    pub guardrails: usize,
 }
 
 #[derive(Debug, PartialEq, Eq)]

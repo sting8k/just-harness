@@ -40,7 +40,7 @@ Harness v0 includes:
 
 - Agent entrypoint.
 - Empty product/work documentation structure.
-- Feature intake and risk lanes.
+- Intake/warmup and risk lanes.
 - Story templates.
 - Decision templates.
 - Validation templates.
@@ -77,16 +77,19 @@ scripts/bin/harness-cli init
 Common commands:
 
 ```bash
-scripts/bin/harness-cli intake  --type <type> --summary <text> --lane <lane>
+scripts/bin/harness-cli intake  --type <type> --summary <text> --lane <lane> --context <paths> --packet <id>
 scripts/bin/harness-cli story   add --id <id> --title <text> --lane <lane>
 scripts/bin/harness-cli story   update --id <id> --status <status>
 scripts/bin/harness-cli story   update --id <id> --unit 1 --integration 1 --e2e 0 --platform 0
 scripts/bin/harness-cli story   verify <id>
 scripts/bin/harness-cli decision add --id <id> --title <text> --doc docs/decisions/<file>.md
+scripts/bin/harness-cli guardrail add --guardrail "<rule>" --why "<reason>"
+scripts/bin/harness-cli guardrail list --active
 scripts/bin/harness-cli trace   --summary <text> --outcome <outcome>
 scripts/bin/harness-cli score-trace
 scripts/bin/harness-cli query   matrix
 scripts/bin/harness-cli query   matrix --numeric
+scripts/bin/harness-cli query   guardrails
 scripts/bin/harness-cli query   backlog
 scripts/bin/harness-cli query   stats
 scripts/bin/harness-cli --version
@@ -152,11 +155,11 @@ Backlog risk uses the same lane vocabulary as intake and stories: `tiny`, `norma
 For every task:
 
 1. Classify the request with `docs/FEATURE_INTAKE.md`.
-2. Record the classification with `scripts/bin/harness-cli intake`.
+2. Record the classification with `scripts/bin/harness-cli intake`; prefer `--context` for context-map paths and `--packet` when linking a work packet.
 3. Locate the affected docs and packet files.
 4. Check proof status with `scripts/bin/harness-cli query matrix`.
 5. Work only inside the selected lane: tiny, normal, or high-risk.
-6. Before finishing, ask whether work truth, validation expectations, guardrails, architecture rules, repeated failure patterns, or next-agent instructions changed.
+6. Before finishing, ask whether work truth, validation expectations, guardrails, architecture rules, repeated failure patterns, or next-agent instructions changed; record new durable guardrails with `scripts/bin/harness-cli guardrail add`.
 7. Record a trace with `scripts/bin/harness-cli trace`, using `docs/TRACE_SPEC.md` for the expected trace tier and field depth.
 8. Review the trace score printed by `scripts/bin/harness-cli trace`; use `scripts/bin/harness-cli score-trace --id <id>` only when re-checking a specific historical trace.
 9. If harness friction was found, either fix it directly or record it with `scripts/bin/harness-cli backlog add`.
@@ -173,6 +176,6 @@ scripts/bin/harness-cli story verify US-012
 
 `story verify` runs the command from the repository root, records `last_verified_at` and `last_verified_result`, and exits 0 on pass or 1 on fail. When `trace --story <id>` links to a story whose verification command has never passed, the trace still records but prints an advisory warning before close.
 
-`story verify` accepts only the story id. Configure the command with `story add --verify` or `story update --verify`. Record proof booleans with `story update`, using numeric values: `1` means yes and `0` means no. The Rust CLI rejects text values such as `yes` and `no`.
+`story verify` accepts only the work packet id. Configure the command with `story add --verify` or `story update --verify`. Record proof booleans with `story update`, using numeric values: `1` means yes and `0` means no. The Rust CLI rejects text values such as `yes` and `no`.
 
 Use `scripts/bin/harness-cli query matrix --numeric` when copying proof values into story updates.

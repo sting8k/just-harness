@@ -6,14 +6,15 @@ use clap::{Args, Parser, Subcommand};
 use thiserror::Error;
 
 use crate::application::{
-    BacklogAddInput, BacklogCloseInput, BrownfieldImportResult, DecisionAddInput, HarnessContext,
-    HarnessService, InitResult, IntakeInput, MigrateResult, QueryTable, StoryAddInput,
-    StoryUpdateInput, TraceInput,
+    BacklogAddInput, BacklogCloseInput, BrownfieldImportResult, DecisionAddInput,
+    GuardrailAddInput, HarnessContext, HarnessService, InitResult, IntakeInput, MigrateResult,
+    QueryTable, StoryAddInput, StoryUpdateInput, TraceInput,
 };
 use crate::domain::{
     parse_optional_integer, proof_display, BacklogFilter, BacklogRecord, BoolFlag, CsvList,
-    DecisionRecord, FrictionRecord, HarnessStats, InputType, IntakeRecord, RiskLane,
-    StoryMatrixRecord, TraceQualityTier, TraceRecord, TraceScoreResult, RISK_LANE_HELP,
+    DecisionRecord, FrictionRecord, GuardrailFilter, GuardrailRecord, GuardrailStatus,
+    HarnessStats, InputType, IntakeRecord, RiskLane, StoryMatrixRecord, TraceQualityTier,
+    TraceRecord, TraceScoreResult, RISK_LANE_HELP,
 };
 
 #[derive(Parser, Debug)]
@@ -33,12 +34,14 @@ enum Command {
     Migrate,
     /// Seed or refresh the database from existing markdown state.
     Import(ImportArgs),
-    /// Record a feature intake classification.
+    /// Record an intake/warmup classification.
     Intake(IntakeArgs),
-    /// Add or update a story.
+    /// Add or update a work packet (stored as a story record).
     Story(StoryArgs),
     /// Add a decision or run its verification.
     Decision(DecisionArgs),
+    /// Add, list, or import project guardrails.
+    Guardrail(GuardrailArgs),
     /// Add or close a backlog item.
     Backlog(BacklogArgs),
     /// Record an agent execution trace.
@@ -60,9 +63,9 @@ struct IntakeArgs {
     lane: String,
     #[arg(long)]
     flags: Option<String>,
-    #[arg(long)]
+    #[arg(long, visible_alias = "context")]
     docs: Option<String>,
-    #[arg(long)]
+    #[arg(long, visible_alias = "packet")]
     story: Option<String>,
     #[arg(long)]
     notes: Option<String>,
@@ -95,10 +98,10 @@ enum StoryAction {
     )]
     Update(StoryUpdateArgs),
     #[command(
-        after_help = "story verify only accepts the story id. Configure proof with story add/update --verify, then record proof flags with story update."
+        after_help = "story verify only accepts the work packet id. Configure proof with story add/update --verify, then record proof flags with story update."
     )]
     Verify {
-        /// Story id to verify.
+        /// Work packet id to verify.
         id: String,
     },
 }
@@ -167,6 +170,44 @@ struct DecisionAddArgs {
     predicted: Option<String>,
     #[arg(long)]
     notes: Option<String>,
+}
+
+#[derive(Args, Debug)]
+struct GuardrailArgs {
+    #[command(subcommand)]
+    action: GuardrailAction,
+}
+
+#[derive(Subcommand, Debug)]
+enum GuardrailAction {
+    Add(GuardrailAddArgs),
+    List(GuardrailListArgs),
+    /// Import guardrails from docs/GUARDRAILS.md.
+    Import,
+}
+
+#[derive(Args, Debug)]
+struct GuardrailAddArgs {
+    #[arg(long)]
+    guardrail: String,
+    #[arg(long, default_value = "active", value_name = "active|superseded")]
+    status: String,
+    #[arg(long = "why")]
+    rationale: Option<String>,
+    #[arg(long)]
+    source: Option<String>,
+    #[arg(long)]
+    notes: Option<String>,
+}
+
+#[derive(Args, Debug)]
+struct GuardrailListArgs {
+    /// Show only active guardrails.
+    #[arg(long, conflicts_with = "superseded")]
+    active: bool,
+    /// Show only superseded guardrails.
+    #[arg(long)]
+    superseded: bool,
 }
 
 #[derive(Args, Debug)]
@@ -280,6 +321,8 @@ enum QueryView {
     Backlog(BacklogQueryArgs),
     /// Decision records.
     Decisions,
+    /// Project guardrails.
+    Guardrails(GuardrailListArgs),
     /// Recent intake classifications.
     Intakes,
     /// Recent traces.
@@ -337,7 +380,7 @@ pub fn run(cli: Cli) -> Result<(), InterfaceError> {
                     verify_command: args.verify,
                     notes: args.notes,
                 })?;
-                println!("Story {} added.", args.id);
+                println!("Work packet {} added.", args.id);
             }
             StoryAction::Update(args) => {
                 service.update_story(StoryUpdateInput {
@@ -353,7 +396,7 @@ pub fn run(cli: Cli) -> Result<(), InterfaceError> {
                     platform: parse_optional_bool("story update: --platform", args.platform)?,
                     verify_command: args.verify,
                 })?;
-                println!("Story {} updated.", args.id);
+                println!("Work packet {} updated.", args.id);
             }
             StoryAction::Verify { id } => {
                 let result = service.verify_story(&id)?;
@@ -386,6 +429,25 @@ pub fn run(cli: Cli) -> Result<(), InterfaceError> {
                 if result.result == "fail" {
                     std::process::exit(1);
                 }
+            }
+        },
+        Command::Guardrail(args) => match args.action {
+            GuardrailAction::Add(args) => {
+                let id = service.add_guardrail(GuardrailAddInput {
+                    status: GuardrailStatus::from_str(&args.status)?,
+                    guardrail: args.guardrail,
+                    rationale: args.rationale,
+                    source: args.source,
+                    notes: args.notes,
+                })?;
+                println!("Guardrail #{id} recorded.");
+            }
+            GuardrailAction::List(args) => {
+                print_guardrails(&service.query_guardrails(guardrail_filter(&args))?)
+            }
+            GuardrailAction::Import => {
+                let count = service.import_guardrails()?;
+                println!("Guardrails imported or updated: {count}");
             }
         },
         Command::Backlog(args) => match args.action {
@@ -455,6 +517,9 @@ pub fn run(cli: Cli) -> Result<(), InterfaceError> {
                 print_backlog(&service.query_backlog(backlog_filter(&args))?)
             }
             QueryView::Decisions => print_decisions(&service.query_decisions()?),
+            QueryView::Guardrails(args) => {
+                print_guardrails(&service.query_guardrails(guardrail_filter(&args))?)
+            }
             QueryView::Intakes => print_intakes(&service.query_intakes()?),
             QueryView::Traces => print_traces(&service.query_traces()?),
             QueryView::Friction => print_friction(&service.query_friction()?),
@@ -564,10 +629,21 @@ fn backlog_filter(args: &BacklogQueryArgs) -> BacklogFilter {
     }
 }
 
+fn guardrail_filter(args: &GuardrailListArgs) -> GuardrailFilter {
+    if args.active {
+        GuardrailFilter::Active
+    } else if args.superseded {
+        GuardrailFilter::Superseded
+    } else {
+        GuardrailFilter::All
+    }
+}
+
 fn print_brownfield_import_result(result: BrownfieldImportResult) {
     println!("Brownfield import complete.");
     println!("Stories imported or updated: {}", result.stories);
     println!("Decisions imported or updated: {}", result.decisions);
+    println!("Guardrails imported or updated: {}", result.guardrails);
     println!("Backlog items discovered: {}", result.backlog_items);
 }
 
@@ -703,6 +779,22 @@ fn print_decisions(records: &[DecisionRecord]) {
         ],
         &rows,
     );
+}
+
+fn print_guardrails(records: &[GuardrailRecord]) {
+    let rows = records
+        .iter()
+        .map(|record| {
+            vec![
+                record.id.to_string(),
+                record.status.clone(),
+                record.guardrail.clone(),
+                record.rationale.clone().unwrap_or_default(),
+                record.source.clone().unwrap_or_default(),
+            ]
+        })
+        .collect::<Vec<_>>();
+    print_table(&["id", "status", "guardrail", "rationale", "source"], &rows);
 }
 
 fn print_intakes(records: &[IntakeRecord]) {
@@ -869,7 +961,7 @@ mod tests {
             .unwrap()
             .render_long_help()
             .to_string();
-        assert!(verify_help.contains("story verify only accepts the story id"));
+        assert!(verify_help.contains("story verify only accepts the work packet id"));
         assert!(verify_help.contains("Configure proof with story add/update --verify"));
     }
 
@@ -884,6 +976,10 @@ mod tests {
             .render_long_help()
             .to_string();
         assert!(intake_help.contains("--lane <tiny|normal|high-risk>"));
+        assert!(intake_help.contains("--docs <DOCS>"));
+        assert!(intake_help.contains("--context"));
+        assert!(intake_help.contains("--story <STORY>"));
+        assert!(intake_help.contains("--packet"));
         assert!(intake_help.contains("Use tiny instead of low"));
 
         let story_add_help = command
@@ -904,6 +1000,25 @@ mod tests {
             .to_string();
         assert!(backlog_add_help.contains("--risk <tiny|normal|high-risk>"));
         assert!(backlog_add_help.contains("Accepted lanes"));
+
+        let guardrail_add_help = command
+            .find_subcommand_mut("guardrail")
+            .unwrap()
+            .find_subcommand_mut("add")
+            .unwrap()
+            .render_long_help()
+            .to_string();
+        assert!(guardrail_add_help.contains("--guardrail <GUARDRAIL>"));
+        assert!(guardrail_add_help.contains("--status <active|superseded>"));
+
+        let guardrails_query_help = command
+            .find_subcommand_mut("query")
+            .unwrap()
+            .find_subcommand_mut("guardrails")
+            .unwrap()
+            .render_long_help()
+            .to_string();
+        assert!(guardrails_query_help.contains("--active"));
 
         let matrix_help = command
             .find_subcommand_mut("query")
