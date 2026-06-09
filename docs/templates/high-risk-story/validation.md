@@ -2,7 +2,7 @@
 
 ## Proof Strategy
 
-Explain what must pass before the story is done.
+Explain what must pass before the packet is done.
 
 ## Test Plan
 
@@ -12,13 +12,12 @@ Explain what must pass before the story is done.
 | Integration | |
 | E2E | |
 | Platform | |
-| Performance | |
-| Logs/Audit | |
+| Checklist / Findings | |
+| Logs / Audit | |
 
 ## Fixtures
 
-List deterministic users, accounts, records, provider responses, or other
-fixtures needed for repeatable proof.
+List deterministic users, accounts, records, provider responses, or other fixtures needed for repeatable proof.
 
 ## Commands
 

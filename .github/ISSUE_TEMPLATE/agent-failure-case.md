@@ -17,8 +17,10 @@ labels: agent-failure, needs-triage
 ## Which harness artifact could help?
 
 - [ ] `AGENTS.md`
-- [ ] Product contract
-- [ ] Story packet
+- [ ] Work/product contract
+- [ ] Work packet
+- [ ] Guardrail
+- [ ] Artifact taxonomy
 - [ ] Validation matrix
 - [ ] Architecture notes
 - [ ] Decision record

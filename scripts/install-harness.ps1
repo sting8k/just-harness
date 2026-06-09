@@ -141,8 +141,9 @@ This repo uses Harness. Before work, read:
 - `README.md`
 - `docs/HARNESS.md`
 - `docs/FEATURE_INTAKE.md`
-- `docs/ARCHITECTURE.md`
 - `docs/CONTEXT_RULES.md`
+- `docs/GUARDRAILS.md`
+- `docs/ARTIFACTS.md`
 - `scripts/bin/harness-cli query matrix` on macOS/Linux, or `.\scripts\bin\harness-cli.exe query matrix` on Windows
 
 Use the Rust Harness CLI at `scripts/bin/harness-cli` on macOS/Linux or
@@ -344,9 +345,11 @@ $files = @(
     "AGENTS.md",
     "README.md",
     "docs/ARCHITECTURE.md",
+    "docs/ARTIFACTS.md",
     "docs/CONTEXT_RULES.md",
     "docs/FEATURE_INTAKE.md",
     "docs/GLOSSARY.md",
+    "docs/GUARDRAILS.md",
     "docs/HARNESS.md",
     "docs/HARNESS_BACKLOG.md",
     "docs/HARNESS_COMPONENTS.md",
@@ -359,7 +362,9 @@ $files = @(
     "docs/decisions/0003-generic-spec-intake-harness.md",
     "docs/decisions/0004-sqlite-durable-layer.md",
     "docs/decisions/0005-prebuilt-rust-harness-cli.md",
+    "docs/decisions/0006-phase-4-benchmark-triage.md",
     "docs/decisions/README.md",
+    "docs/demo/README.md",
     "docs/product/README.md",
     "docs/stories/README.md",
     "docs/stories/backlog.md",

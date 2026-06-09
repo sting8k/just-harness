@@ -1,7 +1,8 @@
-# Epic Story Packets
+# Epic Groups
 
-Create epic folders here only when work begins or when product decisions need a
-durable home.
+This folder is an optional shallow namespace for larger initiatives with multiple packets.
+
+The default stays flat under `docs/stories/`.
 
 Suggested naming:
 
@@ -11,4 +12,4 @@ E02-domain-name/
 E03-domain-name/
 ```
 
-Create the real epic names from the user-provided spec, not from this template.
+Use a group folder only when sibling packets share a common initiative. Do not create deep trees just to mirror org charts.

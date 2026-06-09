@@ -6,81 +6,52 @@ An AI coding collaborator operating inside the repository.
 
 ## Harness
 
-The repo-level operating system that tells humans and agents how to turn intent
-into safe product changes.
+The repo-level operating system that tells humans and agents how to turn intent into safe work.
 
-## Product Contract
+## Work Packet
 
-The current expected behavior of the product. Product docs plus executable tests
-become the living contract once implementation exists.
+The default unit of work: a single file or folder that captures goal, scope, context map, proof, and evidence for one bounded piece of work.
 
 ## Story Packet
 
-A story-sized work file or folder that describes the product contract, affected
-docs, design notes, and validation expectations for a feature.
+A work packet expressed through the `story` surface. This is the default shape for bounded work.
 
 ## Feature Intake
 
-The classification step that turns a prompt into tiny, normal, or high-risk
-work before implementation begins.
+The warmup and classification step that turns a prompt into a work packet shape before implementation begins.
 
-## Component Taxonomy
+## Classify
 
-A map from Harness files and capabilities to the responsibilities they serve,
-used to evaluate coverage, attribute failures, and identify missing harness
-capabilities.
+Choose the kind of work and the depth/risk lane.
 
-## Maturity Level
+## Map Context
 
-A verifiable stage in Harness capability, from H0 bare environment through H5
-self-improving harness. Each level has required files, criteria, and benchmark
-indicators.
+Choose the smallest set of documents and files that must be loaded before work begins.
 
-## Trace Quality Tier
+## Guardrail
 
-The expected depth of a task trace: minimal for tiny work, standard for normal
-work, and detailed for high-risk work.
-
-## Verification Gate
-
-An advisory Harness check that runs or inspects mechanical proof before a task
-is closed. In Phase 4, `story verify <id>` executes a story's `verify_command`,
-and `trace --story <id>` warns when that story's verification has not passed.
-
-## Context Phase
-
-A phase of an agent task that changes what context should be read, such as
-intake, planning, implementation, validation, or trace recording.
-
-## Retrieval Trigger
-
-A condition that tells an agent to fetch additional context, such as touching a
-database schema, changing a public contract, or discovering missing validation.
+A durable project directive that should shape future agent behavior.
 
 ## Harness Delta
 
-A documentation, template, validation, backlog, or decision update that makes
-future agent work safer or easier.
+A documentation, template, validation, backlog, or decision update that makes future agent work safer or easier.
 
 ## Backlog Outcome Loop
 
-The feedback workflow for Harness improvements: record predicted impact when a
-backlog item is created, then record actual measured outcome when the item is
-closed so future agents can compare expectation with result.
+The feedback workflow for Harness improvements: record predicted impact when a backlog item is created, then record actual measured outcome when the item is closed so future agents can compare expectation with result.
 
 ## Durable Layer
 
-The SQLite database and CLI (`scripts/bin/harness-cli`) that stores operational records
-(intakes, stories, decisions, backlog items, traces) as structured, queryable
-data. Policy docs describe how to work; the durable layer stores what happened.
+The SQLite database and CLI (`scripts/bin/harness-cli`) that stores operational records (intakes, stories, decisions, backlog items, traces) as structured, queryable data. Policy docs describe how to work; the durable layer stores what happened.
+
+## Work Delta
+
+A repository-facing change that moves the selected work forward: docs, code, tests, findings, checklists, tasks, or evidence.
 
 ## Product Delta
 
-A product-facing change such as code, tests, API shape, data model, or product
-documentation.
+A work delta that changes product-facing behavior, such as code, tests, API shape, data model, or product docs.
 
 ## Trace
 
-A structured record of what an agent did during a task: actions taken, files
-read, files changed, decisions made, errors encountered, outcome, and any
-harness friction discovered.
+A structured record of what an agent did during a task: actions taken, files read, files changed, decisions made, errors encountered, outcome, and any harness friction discovered.

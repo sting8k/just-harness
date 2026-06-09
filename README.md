@@ -29,7 +29,7 @@ That leads to common failure modes:
 - Important constraints live only in chat history or in someone's head.
 - Validation expectations are vague or discovered too late.
 - Architecture tradeoffs are repeated instead of inherited.
-- Large requests do not get broken into reviewable story-sized work.
+- Large requests do not get broken into reviewable packet-sized work.
 
 ## The Harness Approach
 
@@ -38,22 +38,24 @@ engineering questions without relying only on chat history:
 
 - What should I read first?
 - What type of work is this?
-- Which product contract does it affect?
+- Which work or product contract does it affect?
 - How risky is the change?
 - What proof will show the work is done?
 - What decision or lesson should future agents inherit?
 
 In this repo, those answers live in:
 
-- `AGENTS.md` — the stable agent shim with local project notes and Harness
-  doc links.
+- `AGENTS.md` — the stable agent shim with local project notes and Harness doc links.
 - `docs/HARNESS.md` — the human-agent collaboration model.
-- `docs/FEATURE_INTAKE.md` — tiny, normal, and high-risk work classification.
+- `docs/FEATURE_INTAKE.md` — intake and warmup for tiny, normal, and high-risk work.
+- `docs/CONTEXT_RULES.md` — what to read and when.
+- `docs/GUARDRAILS.md` — durable project directives.
+- `docs/ARTIFACTS.md` — naming and folder taxonomy.
 - `docs/ARCHITECTURE.md` — architecture discovery and boundary rules.
 - `docs/TEST_MATRIX.md` — behavior-to-proof validation expectations.
-- `docs/stories/` — story packets and backlog items.
+- `docs/stories/` — work packets and backlog.
 - `docs/decisions/` — durable decisions and tradeoffs.
-- `docs/templates/` — reusable spec, story, decision, and validation templates.
+- `docs/templates/` — reusable packet, decision, and validation templates.
 
 OpenAI describes this shift as an agent-first world where humans steer and
 agents execute:
@@ -112,9 +114,11 @@ project's local instructions.
 If the project is driven with Claude Code, add `--claude`. Claude Code never
 auto-loads `AGENTS.md`, so without this the installed harness is invisible to
 fresh sessions. The flag installs (or refreshes) a `CLAUDE.md` whose marked
-Harness block `@`-imports `AGENTS.md` and `docs/FEATURE_INTAKE.md` into every
-session's context. An existing `CLAUDE.md` gets the block appended after a
-backup; plain installs without the flag never touch `CLAUDE.md`:
+Harness block `@`-imports `AGENTS.md`, `docs/HARNESS.md`,
+`docs/FEATURE_INTAKE.md`, `docs/CONTEXT_RULES.md`, `docs/GUARDRAILS.md`, and
+`docs/ARTIFACTS.md` into every session's context. An existing `CLAUDE.md` gets
+the block appended after a backup; plain installs without the flag never touch
+`CLAUDE.md`:
 
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/hoangnb24/repository-harness/main/scripts/install-harness.sh?$(date +%s)" | bash -s -- --claude --yes
@@ -147,51 +151,43 @@ Linux arm64, and Windows x64. The Windows asset is
 
 ## Try The Flow
 
-The fastest way to understand the harness is to inspect the tiny demo:
+The fastest way to understand the harness is to inspect the demo:
 
-- `docs/demo/README.md`: shows how a simple product idea becomes product docs,
-  stories, validation expectations, and decisions before implementation starts.
+- `docs/demo/README.md`: shows how a simple product idea becomes intake output, a flat work packet, proof expectations, and durable learning before implementation starts.
 
 A typical flow looks like this:
 
 ```text
 human intent or product spec
-  -> product contract
-  -> feature intake
-  -> story packet
-  -> validation expectations
+  -> intake / warmup
+  -> work packet
+  -> proof expectations
   -> implementation work
-  -> decision or lesson captured for future agents
+  -> trace and decision or harness delta
 ```
 
-Implementation prompts do not go straight to code. They first pass through
-feature intake, become story-sized work when needed, and then carry both product
-validation and harness maintenance expectations.
+Implementation prompts do not go straight to code. They first pass through feature intake, become work packets when needed, and then carry both proof and harness maintenance expectations.
 
 ## Current State
 
 This repository is in Harness v0.
 
-There is no application implementation and no baked-in product specification
-yet. The current work is the reusable project harness: the file structure,
-agent operating model, feature intake process, story templates, and validation
-expectations that help humans and agents turn a future user-provided spec into
-implementation work.
+There is no application implementation and no baked-in product specification yet. The current work is the reusable project harness: the file structure, agent operating model, intake process, guardrails, work packet templates, and validation expectations that help humans and agents turn a future user-provided spec into implementation work.
 
 ## Product Sources
 
 No product contract is currently defined.
 
-When a user provides a project specification, add or reference it as the input
-spec for the first buildout, then derive smaller living artifacts from it:
+When a user provides a project specification, add or reference it as the input spec for the first buildout, then derive smaller living artifacts from it:
 
-- `docs/product/`: current product contract files, created from the spec.
-- `docs/stories/`: story packets and backlog created from selected work.
-- `docs/TEST_MATRIX.md`: behavior-to-proof control panel.
+- `docs/product/`: current work contract files.
+- `docs/stories/`: work packets and backlog.
 - `docs/decisions/`: durable decisions and tradeoffs.
+- `docs/GUARDRAILS.md`: durable project directives.
+- `docs/ARTIFACTS.md`: naming and folder rules.
+- `docs/TEST_MATRIX.md`: behavior-to-proof control panel.
 
-Do not keep a project-specific spec or product breakdown in this harness until
-a real project supplies one.
+Do not keep a project-specific spec or product breakdown in this harness until a real project supplies one.
 
 ## Repository Structure
 
@@ -202,8 +198,12 @@ project/
   docs/
     HARNESS.md
     FEATURE_INTAKE.md
+    CONTEXT_RULES.md
+    GUARDRAILS.md
+    ARTIFACTS.md
     ARCHITECTURE.md
     TEST_MATRIX.md
+    TRACE_SPEC.md
     HARNESS_BACKLOG.md
     product/
     stories/
@@ -211,7 +211,6 @@ project/
     demo/
     templates/
   scripts/
-    README.md
 ```
 
 ## Contributing
@@ -237,5 +236,4 @@ with coding agents.
 Short description:
 
 > An agent-ready repo harness for Claude Code, Codex, Cursor, and other coding
-> agents: AGENTS.md, product contracts, story packets, validation matrix, and
-> decision records.
+> agents: AGENTS.md, work packets, proof matrix, guardrails, and decision records.

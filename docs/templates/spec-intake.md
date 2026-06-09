@@ -12,7 +12,7 @@ Where did the spec come from?
 
 ## Project Summary
 
-What product are we building, for whom, and why?
+What product or work are we building, for whom, and why?
 
 ## Candidate Product Docs
 
@@ -22,14 +22,13 @@ List the product contract files that should be created under `docs/product/`.
 | --- | --- | --- |
 | `docs/product/overview.md` | | |
 
-## Candidate Epics
+## Candidate Work Packets
 
-List only the epics that are clear enough to name. Do not create every story
-packet yet.
+List the first packets that should exist. Keep grouping shallow.
 
-| Epic | Description | Status |
+| Packet | Purpose | Status |
 | --- | --- | --- |
-| E01 | | unsliced |
+| US-001 | | planned |
 
 ## Architecture Questions
 
@@ -42,7 +41,7 @@ packet yet.
 
 ## Validation Shape
 
-What proof will this project eventually need?
+What proof will this work eventually need?
 
 | Layer | Expected proof |
 | --- | --- |
@@ -56,7 +55,7 @@ What proof will this project eventually need?
 
 - Item.
 
-## First Story Candidates
+## First Work Packet Candidates
 
 - Item.
 

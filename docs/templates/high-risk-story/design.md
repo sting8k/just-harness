@@ -1,20 +1,24 @@
 # Design
 
-## Domain Model
+## Constraints
 
-Describe entities, value objects, and business rules.
+List the hard constraints that shape the packet.
 
-## Application Flow
+## Work Model
 
-Describe commands, queries, and handlers.
+Describe the entities, values, and rules.
+
+## Execution Flow
+
+Describe commands, queries, handlers, or review steps.
 
 ## Interface Contract
 
 Describe routes, messages, commands, request DTOs, response DTOs, and errors.
 
-## Data Model
+## Data / State
 
-Describe tables, indexes, migrations, and retention concerns.
+Describe tables, indexes, files, records, and retention concerns.
 
 ## UI / Platform Impact
 
@@ -22,7 +26,7 @@ Describe browser, mobile, desktop, CLI, deployment, or platform-shell impact.
 
 ## Observability
 
-Describe logs, audit records, metrics, or traces.
+Describe logs, audit records, metrics, traces, or checklist evidence.
 
 ## Alternatives Considered
 

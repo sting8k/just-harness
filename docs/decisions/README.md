@@ -1,12 +1,11 @@
 # Decisions
 
-Decision records explain why important product, architecture, or harness choices
-were made.
+Decision records explain why important product, architecture, or harness choices were made.
 
-Use `docs/templates/decision.md` when adding a new decision.
+Keep decisions flat and numbered: `docs/decisions/0001-short-slug.md`.
+Use `docs/templates/decision.md` for the file shape. Keep one rationale per file.
 
-After adding or updating a markdown decision file, also add or refresh the
-durable decision row:
+After adding or updating a markdown decision file, also add or refresh the durable decision row:
 
 ```bash
 scripts/bin/harness-cli decision add \
@@ -15,8 +14,7 @@ scripts/bin/harness-cli decision add \
   --doc docs/decisions/0008-auth-boundary.md
 ```
 
-Trace fields such as `--decisions` summarize task-level choices. They do not
-count as the Harness decision log.
+Trace fields such as `--decisions` summarize task-level choices. They do not count as the Harness decision log.
 
 Add a decision when:
 

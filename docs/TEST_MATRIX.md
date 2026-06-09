@@ -1,9 +1,8 @@
 # Test Matrix
 
-This file maps product behavior to proof.
+This file maps story-level behavior to proof. Read-heavy or non-behavior packets keep proof in the packet and trace.
 
-No product behavior has been defined or implemented yet. Do not mark a row
-implemented until tests or validation evidence exist.
+No product or work behavior has been defined or implemented yet. Do not mark a row implemented until tests or validation evidence exist.
 
 ## Status Values
 
@@ -19,7 +18,7 @@ implemented until tests or validation evidence exist.
 
 | Story | Contract | Unit | Integration | E2E | Platform | Status | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| TBD | Add rows when story packets are created | no | no | no | no | planned | none |
+| TBD | Add rows when work packets need durable proof | no | no | no | no | planned | none |
 
 ## Evidence Rules
 
@@ -29,5 +28,5 @@ implemented until tests or validation evidence exist.
 - E2E proof covers user-visible browser flows.
 - Platform proof covers only shell, deployment, mobile, desktop, or runtime
   behavior that cannot be proven in lower layers.
-- A story can be implemented without every proof column if the story packet
+- A work packet can be implemented without every proof column if the packet
   explains why.

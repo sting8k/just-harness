@@ -1,4 +1,4 @@
-# US-XXX Story Title
+# US-001 Story Title
 
 ## Status
 
@@ -8,28 +8,41 @@ planned
 
 tiny | normal | high-risk
 
-## Product Contract
+## Goal
 
-Describe the behavior this story must make true.
+What outcome must be true?
 
-## Relevant Product Docs
+## Scope
 
-- `docs/product/...`
+In scope:
 
-## Acceptance Criteria
+- Item.
+
+Out of scope:
+
+- Item.
+
+## Context Map
+
+- Read first:
+- Affected docs:
+- Affected code or surfaces:
+- Related decisions:
+- Guardrails:
+
+## Acceptance / Proof
 
 - Criterion 1.
 - Criterion 2.
 - Criterion 3.
 
-## Design Notes
+## Checklist / Findings / Tasks
 
-- Commands:
-- Queries:
-- API:
-- Tables:
-- Domain rules:
-- UI surfaces:
+Use these sections when the work is read-heavy, audit-like, or multi-repo.
+
+- Checklist:
+- Findings:
+- Tasks:
 
 ## Validation
 
@@ -46,8 +59,12 @@ When updating durable proof status, use numeric booleans:
 
 ## Harness Delta
 
-Document any harness updates made or proposed because of this story.
+Document any harness updates made or proposed because of this work.
 
 ## Evidence
 
 Add commands, reports, screenshots, or links after validation exists.
+
+## Open Questions
+
+- Item.

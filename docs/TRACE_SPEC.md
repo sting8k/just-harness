@@ -1,6 +1,6 @@
 # Trace Specification
 
-The `trace` table records what happened during a Harness task. This document
+The `trace` table records what happened during a Harness task or work packet. This document
 defines the expected depth and format for each field so traces are useful for
 review, benchmark scoring, failure attribution, and future harness evolution.
 
@@ -15,7 +15,7 @@ table. The schema is not changed by Phase 2.
 | `created_at` | TEXT | Automatic | SQLite `datetime('now')`. Do not set manually. | `2026-05-27 09:24:37` |
 | `task_summary` | TEXT | Yes | One sentence, at least 10 characters, naming the outcome or attempted outcome. | `Completed Phase 2 docs-only observability and taxonomy specification` |
 | `intake_id` | INTEGER | Standard+ when an intake was recorded | Integer id from the related `intake` row. | `36` |
-| `story_id` | TEXT | Standard+ when work maps to one story | Story id from the `story` table. Use the main story when one trace covers several; list the rest in `notes`. | `US-004` |
+| `story_id` | TEXT | Standard+ when work maps to one story | Story id from the `story` table. Leave empty when the packet does not map cleanly to one story; use the main story when one trace covers several and list the rest in `notes`. | `US-004` |
 | `agent` | TEXT | Optional for minimal; Standard+ expected | Short agent/tool name. | `codex` |
 | `actions_taken` | TEXT | Standard+ | JSON array text. With the current CLI, pass a comma-separated list and the CLI stores JSON text. | `["read PHASE2.md","drafted TRACE_SPEC.md","updated HARNESS.md"]` |
 | `files_read` | TEXT | Standard+ | JSON array text of paths or command names. With the current CLI, pass a comma-separated list. | `["PHASE2.md","docs/HARNESS.md","scripts/bin/harness-cli query matrix"]` |
@@ -110,7 +110,7 @@ Populate `harness_friction` when any of these occur:
 
 - The agent had to infer a missing rule or source of truth.
 - Required validation was unclear, unavailable, or too expensive to run.
-- A document, durable record, or story packet was stale or contradictory.
+- A document, durable record, or packet was stale or contradictory.
 - The task revealed a repeated manual step that should become a template,
   command, or checklist.
 - A requested change was out of scope but likely important later.

@@ -30,7 +30,7 @@ Share cases where an agent made a bad change because the repo lacked context:
 Improve files in `docs/templates/` when you find a repeatable pattern for:
 
 - product specs
-- story packets
+- work packets
 - decision records
 - validation plans
 - agent operating rules
@@ -40,7 +40,7 @@ Improve files in `docs/templates/` when you find a repeatable pattern for:
 
 Add or refine expectations in `docs/TEST_MATRIX.md` for common stacks and work
 types. The goal is not only "tests pass". The goal is clear proof that the work
-matches the product contract.
+matches the work contract.
 
 ### 5. Documentation clarity
 

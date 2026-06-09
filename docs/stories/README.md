@@ -1,43 +1,35 @@
 # Stories
 
-Stories are work packets. They turn product intent into bounded implementation
-and validation work.
+Stories are work packets. They turn selected work into bounded execution and proof.
 
-No story packets are active yet.
+The default story is flat and small enough to read at a glance.
 
-## Normal Story
-
-Use `docs/templates/story.md` for normal feature work.
-
-Suggested path:
+## Default Path
 
 ```text
-docs/stories/epics/E01-domain-name/US-001-short-story-title.md
+docs/stories/US-001-short-story-title.md
 ```
 
-## High-Risk Story
+## Grouped Work
 
-Use `docs/templates/high-risk-story/` when the feature intake classifies work as
-high-risk.
+Use `docs/stories/epics/` only when a larger initiative needs a shared namespace for multiple packets. Keep the group shallow.
 
-Suggested path:
+## High-Risk Work
 
-```text
-docs/stories/epics/E02-risky-domain/US-012-risky-story-title/
-  execplan.md
-  overview.md
-  design.md
-  validation.md
-```
+Use `docs/templates/high-risk-story/` when the packet is large or the risk is high enough to need `execplan.md`, `overview.md`, `design.md`, and `validation.md`.
+
+## What Stories Can Hold
+
+A packet can describe product changes, audits, inventories, spikes, migrations, or other bounded repository work. For read-heavy packets, use the same file shape and add checklist, findings, tasks, and evidence sections instead of inventing a new artifact type.
 
 ## Status Flow
 
 ```text
 planned -> in_progress -> implemented
-                  |
-                  v
-               changed
-                  |
-                  v
-               retired
+                   |
+                   v
+                changed
+                   |
+                   v
+                retired
 ```

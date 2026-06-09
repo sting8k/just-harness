@@ -1,7 +1,8 @@
 # Harness Backlog
 
-Use this file when an agent discovers a missing harness capability but should
-not change the operating model immediately.
+Use this file when an agent discovers a missing harness capability but should not change the operating model immediately.
+
+This backlog is for framework friction only. Product findings, remediation tasks, or audit outputs belong in the work packet that discovered them.
 
 ## Template
 

@@ -1,13 +1,13 @@
 # Story Backlog
 
-This backlog will be populated after a user provides a project spec or selects a
-specific initiative.
+This backlog holds candidate work packets and initiative ideas that are not yet selected.
 
-Do not create every possible story packet up front. Create story packets when
-the work is selected or when a product decision needs a durable place to land.
+Do not create every possible packet up front.
 
-## Candidate Epics
+If the item is only harness friction, use `docs/HARNESS_BACKLOG.md` instead.
 
-| Epic | Description | Status |
+## Candidate Packets
+
+| Packet | Kind | Status |
 | --- | --- | --- |
-| TBD | Add candidate epics after spec intake | unsliced |
+| TBD | Add candidates after intake | unsliced |

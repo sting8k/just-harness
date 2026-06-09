@@ -16,6 +16,9 @@ labels: example, needs-triage
 - [ ] `AGENTS.md`
 - [ ] `docs/HARNESS.md`
 - [ ] `docs/FEATURE_INTAKE.md`
+- [ ] `docs/CONTEXT_RULES.md`
+- [ ] `docs/GUARDRAILS.md`
+- [ ] `docs/ARTIFACTS.md`
 - [ ] `docs/TEST_MATRIX.md`
 - [ ] `docs/templates/`
 - [ ] Other:

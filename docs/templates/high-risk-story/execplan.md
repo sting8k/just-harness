@@ -14,6 +14,13 @@ Out of scope:
 
 - Item.
 
+## Context Map
+
+- Read first:
+- Affected docs:
+- Affected surfaces:
+- Guardrails:
+
 ## Risk Classification
 
 Risk flags:
@@ -27,7 +34,7 @@ Hard gates:
 ## Work Phases
 
 1. Discovery.
-2. Design.
+2. Packet shaping.
 3. Validation planning.
 4. Implementation.
 5. Verification.
@@ -37,8 +44,7 @@ Hard gates:
 
 Pause for human confirmation if:
 
-- Product behavior is ambiguous.
+- Behavior is ambiguous.
 - Data migration or deletion risk appears.
 - Validation requirements need to be weakened.
 - Architecture direction changes.
-
