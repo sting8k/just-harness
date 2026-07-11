@@ -105,7 +105,7 @@ For Harness v0, that distinction matters. This repository deliberately does not 
 
 ## Harness Delta
 
-Every task also asks whether the harness itself should improve.
+Recurring friction can reveal where the harness itself should improve.
 
 If this demo revealed that many projects need the same intake example, the right follow-up might be:
 

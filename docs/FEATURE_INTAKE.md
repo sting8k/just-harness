@@ -1,143 +1,87 @@
-# Intake / Warmup
+# Intake and Risk
 
-Repo-changing implementation prompts enter intake before code or contract changes. A new spec also enters here before it becomes work packets or implementation work. Read-only questions, status checks, and trivial commands can skip durable intake when the agent says why.
+Intake helps determine what context and proof a task needs. It is a reasoning aid, not a mandatory gateway to code.
 
-The human does not need to classify risk. The harness does.
+For routine work, classification can remain lightweight: identify the affected surface, meaningful risk, and closing proof, then proceed. Record a durable intake when classification must survive a session, support a handoff, link a work packet, or make high-risk scope explicit.
 
-## Intake Flow
+The human does not need to name a lane. Infer the smallest safe lane from semantic risk and blast radius.
 
-```text
-User prompt
-    |
-    v
-Classify input type
-    |
-    v
-Map context
-    |
-    v
-Build work packet
-    |
-    v
-Choose lane: tiny, normal, or high-risk
-```
+## Intake Questions
 
-## What Intake Is For
+Answer only what helps the task:
 
-Intake is agent warmup. It should answer:
-
-- What kind of work is this?
-- What context must be loaded?
-- What should stay out of scope?
-- What proof will close the work?
-
-## Input Types
-
-Use the input type to decide where the work should land before choosing the risk lane.
-
-| Type | Use when | Typical artifact |
-| --- | --- | --- |
-| New spec | Turning a user-provided project spec into harness-ready docs | Work packets, product docs, decisions |
-| Spec slice | Implementing selected behavior from an accepted spec | Work packet |
-| Change request | Changing, fixing, or refining accepted behavior | Work packet or direct patch |
-| New initiative | Adding a larger area that needs multiple packets | Initiative notes plus work packets |
-| Maintenance request | Changing technical, operational, or dependency behavior | Work packet, validation report, or decision |
-| Harness improvement | Improving how humans and agents collaborate | Direct docs update or `scripts/bin/harness-cli backlog add` |
-
-Read-heavy or multi-repo work still uses the same intake path. Keep one work packet and add `Checklist`, `Findings`, `Tasks`, and `Evidence` sections instead of inventing a new artifact type.
-
-Do not create or extend a monolithic spec by default after intake. Use product docs, work packets, decisions, and initiative notes as the living surface.
+- What outcome is requested?
+- What contract or invariant may change?
+- What context is relevant now?
+- What proof would support completion?
+- Is ambiguity consequential enough to ask before implementation?
 
 ## Lanes
 
+Lanes control context and proof depth. They do not encode business priority.
+
 ### Tiny
 
-Use for low-risk docs, copy, names, or narrow edits.
+Use for narrow, low-risk edits such as copy, names, localized docs, or small implementation changes with an obvious contract and proof path.
 
-Also use for initial project setup when the work is limited to installing declared dependencies, wiring a server entrypoint, adding a health/smoke endpoint, or opening a local development database connection without creating domain schema, CRUD behavior, auth, authorization, provider integration, or data migration. A health endpoint in a new benchmark or scaffolded project is smoke proof, not a public contract escalation by itself.
+Expected behavior:
 
-Requirements:
+- patch directly;
+- read the affected source and nearby contract;
+- run available focused checks;
+- report any unverified gap.
 
-- Patch directly.
-- Keep affected docs current.
-- Run available quick checks.
-- Update the harness only if friction was found.
+A file change alone does not require a durable intake, packet, or trace.
 
 ### Normal
 
-Use for work-packet sized behavior with bounded blast radius.
+Use for bounded behavior changes whose blast radius is understood.
 
-Requirements:
+Expected behavior:
 
-- Create or update one work packet file from `docs/templates/story.md` when behavior, acceptance criteria, multiple files, or multiple steps change. Direct narrow patches can link existing docs instead.
-- Link relevant docs.
-- Add or update validation expectations.
-- Implement the smallest vertical slice when implementation exists.
-- Record or update proof status with `scripts/bin/harness-cli story add` and `scripts/bin/harness-cli story update`.
+- preserve explicit contracts and adjacent behavior;
+- run direct proof plus relevant regression checks;
+- create a work packet only when durable acceptance tracking, coordination, or multi-session continuity is useful;
+- update validation expectations when the contract changes.
 
-### High-Risk
+### High-risk
 
-Use when the work can affect security, data, scope, contracts, or multiple roles/platforms.
+Use when failure could materially affect security, authorization, data, public contracts, external systems, or broad existing behavior.
 
-Requirements:
+Expected behavior:
 
-- Create a work packet folder using `docs/templates/high-risk-story/` only when the packet is large enough to need `execplan.md`, `overview.md`, `design.md`, and `validation.md`. For smaller high-risk fixes, compact design and validation notes in the packet or trace are acceptable.
-- Leave explicit validation evidence before closing the work. If validation is incomplete, record the gap instead of claiming completion.
-- Ask for human confirmation before implementation if direction is ambiguous.
-- Record a durable decision when behavior, architecture, authorization, data ownership, API shape, or validation requirements change meaningfully. Use a `docs/decisions/NNNN-*.md` file from `docs/templates/decision.md`, then add or refresh the durable row with `scripts/bin/harness-cli decision add`.
-- Decision text in a trace is not a durable decision record.
+- retrieve the relevant architecture, decision, contract, and validation sources;
+- make acceptance and validation evidence explicit;
+- ask for confirmation before implementation when consequential direction is ambiguous;
+- record a durable decision only when future work must inherit the choice.
 
-## Risk Checklist
+A large folder or detailed trace is not automatically required. Match the artifact to the information that must persist.
 
-Mark one flag for each item that applies:
+## High-Risk Triggers
 
-| Risk flag | Applies when the work touches |
-| --- | --- |
-| Auth | login, logout, sessions, JWT, password, refresh token |
-| Authorization | roles, permissions, tenant or company scope |
-| Data model | schema, migrations, uniqueness, deletion, retention |
-| Audit/security | audit logs, privacy, sensitive data, access logs |
-| External systems | email, payments, cloud services, provider SDKs, queues, webhooks |
-| Public contracts | API shape, response envelope, client-visible behavior |
-| Cross-platform | desktop/mobile/browser split, native shell behavior, deep links |
-| Existing behavior | already implemented or test-covered behavior changes |
-| Weak proof | unclear or missing tests around the affected area |
-| Multi-domain | more than one product domain changes at once |
+Treat these as strong escalation signals:
 
-## Classification
+- authentication, authorization, tenant or role boundaries;
+- data loss, migrations, retention, or ownership;
+- audit, privacy, secrets, or sensitive access;
+- payments, email, queues, webhooks, provider SDKs, or other external effects;
+- public API or client-visible contract changes;
+- weakening or removing validation;
+- broad changes to established or test-covered behavior.
 
-```text
-0-1 flags:
-  tiny or normal, based on code impact
+Other factors such as weak proof, cross-platform behavior, or multiple domains can raise the lane when they materially increase uncertainty or blast radius. Do not count flags mechanically when the semantic risk is already clear.
 
-2-3 flags:
-  normal with stronger validation
+## Durable Intake
 
-4+ flags:
-  high-risk
+When a durable intake is useful, record the smallest useful summary:
 
-Any hard gate:
-  high-risk unless the human explicitly narrows scope
+```bash
+scripts/bin/harness-cli intake \
+  --type <type> \
+  --summary <outcome> \
+  --lane <tiny|normal|high-risk> \
+  --context <relevant-paths> \
+  --packet <optional-packet-id>
 ```
 
-Hard gates:
-
-- Auth.
-- Authorization.
-- Data loss or migration.
-- Audit/security.
-- External provider behavior.
-- Removing or weakening validation requirements.
-
-## Output
-
-At the end of intake, the agent should be able to say:
-
-```text
-Type: normal
-Lane: normal
-Read first: docs/product/overview.md, docs/decisions/0004-sqlite-durable-layer.md
-Work packet: docs/stories/US-001-short-title.md
-Proof: unit and integration
-Open questions: none
-```
+The result should make the lane, relevant context, expected proof, and consequential open questions clear. It need not restate the full user request.

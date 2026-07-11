@@ -114,10 +114,9 @@ project's local instructions.
 If the project is driven with Claude Code, add `--claude`. Claude Code never
 auto-loads `AGENTS.md`, so without this the installed harness is invisible to
 fresh sessions. The flag installs (or refreshes) a `CLAUDE.md` whose marked
-Harness block `@`-imports `AGENTS.md`, `docs/HARNESS.md`,
-`docs/FEATURE_INTAKE.md`, `docs/CONTEXT_RULES.md`, `docs/GUARDRAILS.md`, and
-`docs/ARTIFACTS.md` into every session's context. An existing `CLAUDE.md` gets
-the block appended after a backup; plain installs without the flag never touch
+Harness block imports only the small `AGENTS.md` entrypoint. Other Harness docs
+are retrieved when the task requires them. An existing `CLAUDE.md` gets the
+block appended after a backup; plain installs without the flag never touch
 `CLAUDE.md`:
 
 ```bash
@@ -155,18 +154,15 @@ The fastest way to understand the harness is to inspect the demo:
 
 - `docs/demo/README.md`: shows how a simple product idea becomes intake output, a flat work packet, proof expectations, and durable learning before implementation starts.
 
-A typical flow looks like this:
+The default flow is deliberately small:
 
 ```text
-human intent or product spec
-  -> intake / warmup
-  -> work packet
-  -> proof expectations
-  -> implementation work
-  -> trace and decision or harness delta
+understand -> implement -> verify -> report
 ```
 
-Implementation prompts do not go straight to code. They first pass through feature intake, become work packets when needed, and then carry both proof and harness maintenance expectations.
+Intake, work packets, traces, and decisions are available when risk, durable
+tracking, handoff, or consequential choices make them useful. They are not
+mandatory stages for routine work.
 
 ## Current State
 

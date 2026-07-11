@@ -7,6 +7,10 @@ The levels are intentionally verifiable. A level is achieved only when its
 criteria can be inspected in repository files, durable Harness records, or
 benchmark output.
 
+Maturity measures available capability, not mandatory ceremony. Compliance and
+trace-score indicators apply only where the related durable artifact is useful;
+they do not outweigh functional correctness, invariant preservation, or cost.
+
 ## Levels
 
 ### H0 - Bare Environment

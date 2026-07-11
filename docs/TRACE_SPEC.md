@@ -1,208 +1,112 @@
 # Trace Specification
 
-The `trace` table records what happened during a Harness task or work packet. This document
-defines the expected depth and format for each field so traces are useful for
-review, benchmark scoring, failure attribution, and future harness evolution.
+A trace is an optional durable execution record. Use one when later review needs evidence, failure attribution, benchmark or release context, or a handoff that cannot be reconstructed cheaply from the repository.
 
-The current schema lives in `scripts/schema/001-init.sql` under the `trace`
-table. The schema is not changed by Phase 2.
+Do not record a trace solely because a file changed. Do not copy the git diff, raw test log, or user request into fields unless that context is needed to interpret the outcome.
+
+The current schema lives in `scripts/schema/001-init.sql` under the `trace` table.
+
+## When to Record
+
+A trace is useful when:
+
+- work spans sessions or actors;
+- an error, blocker, skipped proof, or harness friction should persist;
+- high-risk work needs reviewable execution evidence;
+- benchmark or release analysis needs comparable metadata;
+- a linked work packet needs a durable outcome.
+
+For routine narrow work, focused verification and a concise final report are enough.
+
+## Evidence First
+
+A useful trace answers:
+
+- What outcome was attempted?
+- What evidence supports the reported result?
+- What failed, was skipped, or remains uncertain?
+- What context would a future reviewer otherwise lose?
+
+Trace completeness is not proof of code quality. The CLI score measures metadata completeness; behavioral claims still depend on executable evidence and review.
 
 ## Field Reference
 
-| Field | Type | Required | Format | Example |
-| --- | --- | --- | --- | --- |
-| `id` | INTEGER | Automatic | SQLite autoincrement primary key. Do not set manually. | `42` |
-| `created_at` | TEXT | Automatic | SQLite `datetime('now')`. Do not set manually. | `2026-05-27 09:24:37` |
-| `task_summary` | TEXT | Yes | One sentence, at least 10 characters, naming the outcome or attempted outcome. | `Completed Phase 2 docs-only observability and taxonomy specification` |
-| `intake_id` | INTEGER | Standard+ when an intake was recorded | Integer id from the related `intake` row. | `36` |
-| `story_id` | TEXT | Standard+ when work maps to one story | Story id from the `story` table. Leave empty when the packet does not map cleanly to one story; use the main story when one trace covers several and list the rest in `notes`. | `US-004` |
-| `agent` | TEXT | Optional for minimal; Standard+ expected | Short agent/tool name. | `codex` |
-| `actions_taken` | TEXT | Standard+ | JSON array text. With the current CLI, pass a comma-separated list and the CLI stores JSON text. | `["read PHASE2.md","drafted TRACE_SPEC.md","updated HARNESS.md"]` |
-| `files_read` | TEXT | Standard+ | JSON array text of paths or command names. With the current CLI, pass a comma-separated list. | `["PHASE2.md","docs/HARNESS.md","scripts/bin/harness-cli query matrix"]` |
-| `files_changed` | TEXT | Standard+ | JSON array text of changed file paths. With the current CLI, pass a comma-separated list; omit only when no files changed. | `["docs/TRACE_SPEC.md","docs/HARNESS.md"]` |
-| `decisions_made` | TEXT | Detailed | JSON array text of decision strings. Include scope decisions, validation choices, and explicit non-goals. | `["Kept Phase 2 docs-only; installer propagation remains out of scope"]` |
-| `errors` | TEXT | Standard+ if errors occurred; Detailed always | JSON array text of error or blocker strings. Until the CLI supports empty arrays directly, use `none` when a detailed trace needs explicit no-error evidence. | `["git diff --check failed before whitespace fix"]` |
-| `outcome` | TEXT | Yes before final response | One of `completed`, `blocked`, `partial`, or `failed`. | `completed` |
-| `duration_seconds` | INTEGER | Detailed when available | Positive integer estimate or measured duration. Leave null if unknown. | `1800` |
-| `token_estimate` | INTEGER | Detailed when available | Positive integer estimate. Leave null if unknown. | `24000` |
-| `harness_friction` | TEXT | Standard+ for repo-changing work; Detailed always | Free text naming what was hard, missing, ambiguous, or repeated. Use `none` only when the agent actively checked and found no friction. | `New Phase 2 docs are not in installer copy list; recorded as out-of-scope follow-up.` |
-| `notes` | TEXT | Optional | Free text for review context that does not fit other fields. | `Trace covers US-003, US-004, US-005, and US-006.` |
-
-## Quality Tiers
-
-### Minimal (score: 1)
-
-Minimum fields:
-
-- `task_summary` is filled and at least 10 characters.
-- `outcome` is filled before the final response.
-
-Acceptable for:
-
-- Tiny-lane tasks with no file changes or only low-risk copy/doc edits.
-
-Not acceptable for:
-
-- Normal or high-risk work.
-- Any work that discovered friction, errors, or a missing validation path.
-
-### Standard (score: 2)
-
-Minimum fields:
-
-- All Minimal fields.
-- `intake_id` when an intake was recorded.
-- `story_id` when the work maps cleanly to one story.
-- `agent`.
-- `actions_taken` as JSON array text.
-- `files_read` as JSON array text.
-- `files_changed` as JSON array text.
-- `harness_friction` names a concrete issue or is `none` after checking; `errors` is filled when errors occurred.
-
-Required for:
-
-- Normal-lane tasks.
-- Tiny tasks that changed Harness instructions, validation expectations, or
-  durable records.
-
-Standard traces may leave `duration_seconds`, `token_estimate`, and
-`decisions_made` empty when those details are not useful.
-
-### Detailed (score: 3)
-
-Minimum fields:
-
-- All Standard fields.
-- `decisions_made` as JSON array text.
-- `errors` as JSON array text, using `none` with the current CLI when no
-  errors occurred.
-- `harness_friction`, using `none` only after checking for friction.
-- `duration_seconds` or a note explaining why duration is unavailable.
-- `token_estimate` or a note explaining why token estimate is unavailable.
-- `notes` when one trace covers multiple stories, multiple risk flags, or
-  skipped validation.
-
-Required for:
-
-- High-risk tasks.
-- Changes touching architecture direction, source-of-truth hierarchy,
-  validation requirements, auth, authorization, data loss, audit/security, or
-  external provider behavior.
-- Benchmark or release work where later review needs precise proof.
-
-For high-risk work, `decisions_made` in the trace summarizes what was decided.
-It does not replace a durable decision record. If the work changes behavior,
-architecture, authorization, data ownership, API shape, or validation
-requirements, add a `docs/decisions/NNNN-*.md` file and record it with
-`scripts/bin/harness-cli decision add`.
-
-## Lane Mapping
-
-| Lane | Expected Tier | Minimum Trace Behavior |
+| Field | Required by schema/CLI | Use |
 | --- | --- | --- |
-| Tiny | Minimal | Record summary and outcome; use Standard if friction or Harness docs changed. |
-| Normal | Standard | Record intake, actions, files read, files changed, outcome, and friction/errors. |
-| High-risk | Detailed | Record all fields or explicitly explain unavailable duration/token estimates. |
+| `id`, `created_at` | Automatic | Durable identity and timestamp. |
+| `task_summary` | Yes | One sentence naming the attempted outcome. |
+| `outcome` | Yes | `completed`, `blocked`, `partial`, or `failed`. |
+| `intake_id` | No | Link when a durable intake exists. |
+| `story_id` | No | Link when one work packet owns the work. |
+| `agent` | No | Identify the agent/tool when useful for analysis. |
+| `actions_taken` | No | Include only actions needed to explain the outcome. |
+| `files_read` | No | Include sources whose role would not be obvious later. |
+| `files_changed` | No | Include when durable review needs the set; otherwise the repository already records it. |
+| `decisions_made` | No | Summarize consequential choices; this does not replace a durable decision record. |
+| `errors` | No | Name blockers, failed checks, or important recovery steps. |
+| `duration_seconds`, `token_estimate` | No | Add only for measurement that will actually be used. |
+| `harness_friction` | No | Record concrete recurring or attributable harness pain. |
+| `notes` | No | Add review context that does not fit elsewhere. |
 
-## Friction Capture Protocol
+The CLI accepts comma-separated values for list-like fields and stores JSON text. Use `none` only where the current CLI or a chosen completeness tier requires an explicit empty value; do not manufacture detail.
 
-Populate `harness_friction` when any of these occur:
+## Completeness Tiers
 
-- The agent had to infer a missing rule or source of truth.
-- Required validation was unclear, unavailable, or too expensive to run.
-- A document, durable record, or packet was stale or contradictory.
-- The task revealed a repeated manual step that should become a template,
-  command, or checklist.
-- A requested change was out of scope but likely important later.
-- A benchmark or review failure could not be attributed to a component.
+Tiers describe metadata depth, not task quality or mandatory workflow.
 
-How to write friction:
-
-- Name the concrete pain, not a vague mood.
-- Include the missing capability or contradiction.
-- If the friction should become work, also add or update a backlog item with
-  `scripts/bin/harness-cli backlog add`.
-- If there was no friction, use `none` for Standard or Detailed traces only after actively checking.
-
-Good friction:
+### Minimal
 
 ```text
-New Phase 2 docs are not copied by scripts/install-harness.sh, but installer
-propagation is out of scope for docs-only Phase 2.
+task_summary + outcome
 ```
 
-Weak friction:
+Use when a durable marker is useful but extra metadata would add little.
 
-```text
-docs confusing
-```
+### Standard
 
-## Examples
+Add the links, actions, evidence pointers, errors, or friction needed for review or handoff. Omit fields that merely repeat repository state.
 
-### Good Trace (Detailed)
+### Detailed
+
+Use for high-risk review, benchmark/release analysis, or complex failure attribution when duration, decisions, errors, and explicit gaps will be examined later. Detailed does not mean every field must contain invented content.
+
+## Recording Examples
+
+Minimal durable outcome:
 
 ```bash
 scripts/bin/harness-cli trace \
-  --summary "Completed high-risk auth role migration with audit proof" \
-  --intake 51 \
-  --story US-014 \
-  --agent codex \
-  --outcome completed \
-  --duration 4200 \
-  --tokens 52000 \
-  --actions "read access-control docs,created migration,updated audit tests,ran integration suite" \
-  --read "docs/product/permissions.md,docs/decisions/0008-auth-boundary.md,src/auth/roles.ts" \
-  --changed "src/auth/roles.ts,src/audit/events.ts,tests/auth-roles.test.ts" \
-  --decisions "kept manager role scoped to workspace,recorded audit event on every role change" \
-  --errors "none" \
-  --friction "Existing permission docs did not define delegated admin; added backlog item for role glossary." \
-  --notes "Detailed trace required because the task touched authorization and audit behavior."
-```
-
-### Adequate Trace (Standard)
-
-```bash
-scripts/bin/harness-cli trace \
-  --summary "Added Phase 2 trace specification and Harness reference" \
-  --intake 36 \
-  --story US-004 \
-  --agent codex \
-  --outcome completed \
-  --actions "read PHASE2.md,drafted TRACE_SPEC.md,updated HARNESS.md,ran rg checks" \
-  --read "PHASE2.md,docs/HARNESS.md,scripts/schema/001-init.sql" \
-  --changed "docs/TRACE_SPEC.md,docs/HARNESS.md" \
-  --friction "none"
-```
-
-### Insufficient Trace
-
-```bash
-scripts/bin/harness-cli trace \
-  --summary "did phase 2" \
+  --summary "Updated the bounded validation contract" \
   --outcome completed
 ```
 
-Why this is insufficient for normal-lane Phase 2 work:
+Evidence-focused trace:
 
-- It does not identify actions.
-- It does not list files read or changed.
-- It does not connect to intake or stories.
-- It gives no friction or error signal.
+```bash
+scripts/bin/harness-cli trace \
+  --summary "Preserved role scope during the authorization migration" \
+  --story US-014 \
+  --agent codex \
+  --outcome partial \
+  --actions "updated role mapping,ran focused authorization tests" \
+  --read "docs/product/permissions.md,docs/decisions/0008-auth-boundary.md" \
+  --changed "src/auth/roles.ts,tests/auth-roles.test.ts" \
+  --errors "cross-tenant integration environment unavailable" \
+  --friction "none" \
+  --notes "Focused tests passed; cross-tenant integration remains unverified."
+```
 
-## Proof and Claim Protocol
+## Proof and Claims
 
-Behavioral claims in a trace should match validation evidence. If proof was not run, was too expensive, or failed, record that directly in `outcome`, `errors`, `harness_friction`, or `notes` instead of claiming completion. Claims about changed files or commands do not need extra proof beyond the trace fields themselves.
+Match the outcome to the evidence:
 
-## Review Checklist
+- `completed`: the requested outcome is supported by the stated proof;
+- `partial`: useful work landed but part of the outcome remains unverified or unfinished;
+- `blocked`: an external dependency or decision prevents progress;
+- `failed`: the attempted change or proof did not succeed.
 
-Before the final response, check:
+If proof was skipped, unavailable, too expensive, or failing, record that directly. A high CLI trace score must never be used as evidence that behavior works.
 
-- The trace tier matches the lane.
-- Review the score printed automatically by `scripts/bin/harness-cli trace`.
-  Use `scripts/bin/harness-cli score-trace --id N` when re-checking a specific
-  historical trace.
-- `files_changed` matches the actual changed-file set at a useful level.
-- `errors` names real blockers or is `none` for Detailed traces when the
-  current CLI is used.
-- `harness_friction` either names a concrete issue or is intentionally `none`.
-- Any friction that should become future work is recorded in the backlog.
+## Friction
+
+Record friction when the task exposes a recurring missing rule, stale source of truth, unclear validation path, or repeated manual step. Name the concrete pain and shared seam. Add a backlog item only when follow-up is worthwhile and out of scope. One-off inconvenience does not need permanent workflow.

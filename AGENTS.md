@@ -5,16 +5,9 @@ Add project-specific agent instructions here.
 <!-- HARNESS:BEGIN -->
 ## Harness
 
-This repo uses Harness. Before work, read:
+Default flow: understand the request and relevant design, implement the smallest fitting change, verify it, and report the result and any unverified gaps.
 
-- `README.md`
-- `docs/HARNESS.md`
-- `docs/FEATURE_INTAKE.md`
-- `docs/CONTEXT_RULES.md`
-- `docs/GUARDRAILS.md`
-- `docs/ARTIFACTS.md`
-- `scripts/bin/harness-cli query matrix` on macOS/Linux, or `.\scripts\bin\harness-cli.exe query matrix` on Windows
+Start with `docs/HARNESS.md`. Retrieve other Harness docs only when its triggers or the task require them; do not load the full framework by default.
 
-Use the Rust Harness CLI at `scripts/bin/harness-cli` on macOS/Linux or
-`scripts/bin/harness-cli.exe` on Windows as the main operational tool.
+Use the Rust Harness CLI at `scripts/bin/harness-cli` on macOS/Linux or `scripts/bin/harness-cli.exe` on Windows for durable records and mechanical checks when they are useful.
 <!-- HARNESS:END -->

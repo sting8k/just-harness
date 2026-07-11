@@ -1,129 +1,70 @@
-# Context Engineering Rules
+# Context Retrieval
 
-Context rules help agents decide what to read, when to read it, and when to stop. They are additive to the stable `AGENTS.md` reading list.
+Load the smallest context that supports the current decision. Start with the request, the affected source, and its nearby contract. Retrieve policy, history, and templates only when a trigger makes them relevant.
 
-The goal is not to maximize context. The goal is to put the right information in the model for the current task phase and risk lane.
+Context is progressive:
 
-## Context Phases
+```text
+Locate the affected surface
+  -> read its contract and adjacent pattern
+  -> follow risk or uncertainty triggers
+  -> stop when the design, constraints, and proof path are clear
+```
 
-### Intake Phase
+Do not read the full Harness documentation, historical traces, or every decision by default.
 
-Read to classify the request, find the affected surface, and choose a lane.
+## Core Retrieval
 
-| Document or Source | Tiny | Normal | High-Risk |
-| --- | --- | --- | --- |
-| `AGENTS.md` | Must | Must | Must |
-| `docs/FEATURE_INTAKE.md` | Must | Must | Must |
-| `docs/HARNESS.md` | Must | Must | Must |
-| `README.md` | Should | Must | Must |
-| `scripts/bin/harness-cli query matrix` | Must | Must | Must |
-| `docs/GUARDRAILS.md` | Skip | Should if project directives matter | Must |
-| `docs/ARTIFACTS.md` | Skip | Should if packet shape or folder rules matter | Must |
-| Relevant `docs/product/*` | Skip if unrelated | Must if work touches the work contract | Must |
-| Relevant `docs/stories/*` | Skip if unrelated | Must if a packet exists | Must |
-| `docs/decisions/*` | Skip | Should if durable rules are touched | Must |
-| `docs/HARNESS_BACKLOG.md` | Skip | Should if harness friction is relevant | Must if changing harness behavior |
+For routine work, usually read:
 
-### Planning Phase
+- the file or behavior being changed;
+- adjacent code or docs that establish the pattern;
+- the closest acceptance criteria, test, or public contract;
+- the command needed for focused verification.
 
-Read to decide the smallest safe approach and expected proof.
+For structural or high-risk work, additionally retrieve the relevant architecture, decisions, guardrails, and validation expectations. Relevance matters more than document count.
 
-| Document or Source | Tiny | Normal | High-Risk |
-| --- | --- | --- | --- |
-| Current files to edit | Must | Must | Must |
-| `docs/templates/story.md` | Skip | Must when creating or updating a packet | Should |
-| `docs/templates/high-risk-story/*` | Skip | Skip unless risk escalates | Must |
-| `docs/ARCHITECTURE.md` | Skip | Should for structural changes | Must |
-| `docs/TEST_MATRIX.md` or `scripts/bin/harness-cli query matrix` | Should | Must | Must |
-| Relevant decisions | Skip | Should | Must |
-| `docs/GUARDRAILS.md` | Skip | Should when project directives affect the task | Must |
-| `docs/ARTIFACTS.md` | Skip | Should when changing naming or folder rules | Must when changing taxonomy |
-| `docs/HARNESS_BACKLOG.md` and `scripts/bin/harness-cli query backlog` | Skip | Should if friction repeats | Must if changing Harness behavior |
-| `docs/HARNESS_MATURITY.md` | Skip | Should for Harness improvements | Must for maturity claims |
+## Triggers
 
-### Implementation Phase
-
-Read while making the change. Keep this phase scoped to files that directly affect the selected packet.
-
-| Document or Source | Tiny | Normal | High-Risk |
-| --- | --- | --- | --- |
-| Files being changed | Must | Must | Must |
-| Adjacent files with the same pattern | Should | Must | Must |
-| Relevant product docs | Skip if copy-only | Must if work changes behavior | Must |
-| Relevant packet | Skip if no packet needed | Must | Must |
-| Relevant templates | Skip | Should when adding docs | Must |
-| `docs/ARCHITECTURE.md` | Skip | Should for structural changes | Must |
-| Provider/API/security docs | Skip | Should if touched | Must |
-| Unrelated docs and historical traces | Skip | Skip | Should only if they affect decisions |
-
-### Validation Phase
-
-Read to prove the change and avoid claiming unsupported completion.
-
-| Document or Source | Tiny | Normal | High-Risk |
-| --- | --- | --- | --- |
-| Acceptance criteria in the packet | Should | Must | Must |
-| `docs/TEST_MATRIX.md` or `scripts/bin/harness-cli query matrix` | Should | Must | Must |
-| Validation section of the packet | Skip if no packet | Must | Must |
-| `docs/templates/validation-report.md` | Skip | Should for notable proof | Must for high-risk proof |
-| Relevant commands from README or package docs | Should | Must | Must |
-| `docs/HARNESS_MATURITY.md` | Skip | Should for Harness improvements | Must for maturity claims |
-
-### Trace Phase
-
-Read to leave useful evidence for the next agent and for benchmark scoring.
-
-| Document or Source | Tiny | Normal | High-Risk |
-| --- | --- | --- | --- |
-| `docs/TRACE_SPEC.md` | Should | Must | Must |
-| `scripts/bin/harness-cli query matrix` | Should | Must | Must |
-| `scripts/bin/harness-cli query backlog` | Skip | Should if friction occurred | Must |
-| Changed-file list from `git status --short` | Must | Must | Must |
-| Validation command output | Should | Must | Must |
-| Packet or progress log | Skip if no packet | Must | Must |
-
-## Retrieval Triggers
-
-| Trigger condition | Action |
+| Trigger | Retrieve or do |
 | --- | --- |
-| Task touches database schema, durable records, or migrations | Read `docs/decisions/0004-sqlite-durable-layer.md`, `scripts/schema/`, and relevant CLI code before planning. |
-| Task touches CLI command behavior or installer distribution | Read `docs/decisions/0005-prebuilt-rust-harness-cli.md`, `scripts/README.md`, relevant `crates/harness-cli/*` code, CLI help output, and installer docs. |
-| Task touches auth, authorization, audit/security, data loss, or external providers | Treat as high-risk, read the high-risk packet template, and check prior decisions before implementation. |
-| Task changes policy, source hierarchy, risk classification, validation requirements, guardrails, or artifact taxonomy | Read `docs/HARNESS.md`, `docs/FEATURE_INTAKE.md`, `docs/CONTEXT_RULES.md`, `docs/GUARDRAILS.md`, `docs/ARTIFACTS.md`, and relevant decisions; pause if direction is ambiguous. |
-| Task discovers repeated confusion, stale docs, or missing proof | Read `docs/HARNESS_BACKLOG.md`, record `harness_friction`, and add a backlog item when the fix is out of scope. |
-| Task makes a maturity, observability, trace quality, or benchmark claim | Read `docs/HARNESS_COMPONENTS.md`, `docs/HARNESS_MATURITY.md`, and `docs/TRACE_SPEC.md`. |
-| Task is normal or high-risk and spans multiple iterations | Create or update a packet or progress file under `docs/stories/` and keep it current. |
-| Final response is being prepared | Re-read the validation evidence, `git status --short`, and `docs/TRACE_SPEC.md` before recording the final trace. |
+| Database schema, durable records, or migrations | Relevant schema and CLI code, plus `docs/decisions/0004-sqlite-durable-layer.md`. |
+| Harness CLI behavior or installer distribution | Relevant CLI/installer code, tests, `scripts/README.md`, and `docs/decisions/0005-prebuilt-rust-harness-cli.md`. |
+| Auth, authorization, audit/security, data loss, or external effects | Escalate to high-risk; read the owned contract, architecture, prior decisions, and security/validation tests. |
+| Public behavior or established contract changes | Read the accepted product/API contract, affected callers, and regression tests. |
+| Structural boundary changes | Read `docs/ARCHITECTURE.md` and relevant decisions before choosing the seam. |
+| Creating or reshaping artifacts | Read `docs/ARTIFACTS.md` and only the template being used. |
+| Unclear proof | Read `docs/TEST_MATRIX.md` or run `scripts/bin/harness-cli query matrix`; inspect existing tests before inventing new procedure. |
+| Work spans sessions or actors | Create or update one packet under `docs/stories/` and keep the current acceptance, status, and evidence useful for handoff. |
+| Consequential choice must persist | Read relevant prior decisions and record a new decision if they do not already settle it. |
+| Recurring harness friction | Read `docs/HARNESS_BACKLOG.md`; fix the shared seam or record a backlog item when out of scope. |
+| Trace is useful for review, release, benchmark, or failure attribution | Read `docs/TRACE_SPEC.md` before recording it. |
 
-## Token Budget Guidance
+## Phase Guidance
 
-| Lane | Target Context Budget | Read Shape | Reasoning |
-| --- | --- | --- | --- |
-| Tiny | About 2K tokens of Harness context | `AGENTS.md`, `docs/FEATURE_INTAKE.md`, matrix query, and the exact file being changed. | Tiny work should not spend more context on policy than on the edit. |
-| Normal | About 5K tokens of Harness context | Intake docs, relevant work docs, architecture when structural, validation expectations, and trace spec at the end. | Normal work needs enough context to preserve contracts and record proof without reading every historical file. |
-| High-risk | About 10K tokens of Harness context | Full intake, architecture, relevant decisions, high-risk templates, work docs, validation docs, trace spec, and component or maturity docs when Harness behavior changes. | High-risk work needs source hierarchy, prior decisions, and proof expectations in context before implementation. |
+### Understand
 
-Budget rules:
+Read enough to identify the outcome, owning design seam, constraints, and meaningful risk. Ask rather than loading more context when the missing information is a user decision.
 
-- Prefer targeted searches over bulk reading.
-- Read the smallest section that answers the current phase question.
-- Escalate context when a retrieval trigger fires.
-- Do not keep reading unrelated history after the lane, affected files, and validation path are clear.
+### Implement
 
-## Additive Behavior
+Keep active context centered on changed files, relevant contracts, and adjacent valid variants. Do not carry unrelated policy or history forward.
 
-These rules do not replace `AGENTS.md`. Agents should still read the stable entrypoint documents listed there before work. This document explains what to retrieve after that initial context, based on lane, phase, and trigger.
+### Verify
 
-## Review Checklist
+Use acceptance criteria and executable proof. Re-read only evidence needed to judge the claim. If proof is unavailable or failing, report the gap instead of expanding context indefinitely.
 
-Before implementation:
+### Report or hand off
 
-- Lane is chosen from `docs/FEATURE_INTAKE.md`.
-- Relevant work docs are identified.
-- Any high-risk trigger has been handled.
+Summarize the outcome, proof, and unresolved gaps. Create or update durable records only when another session or actor will benefit; do not duplicate the diff or raw test log.
 
-Before final response:
+## Stop Rule
 
-- Validation evidence has been read.
-- `docs/TRACE_SPEC.md` has been read for normal or high-risk tasks.
-- The final trace includes files read, files changed, outcome, proof status, and `harness_friction` as a concrete issue or `none` when repo-changing work was done.
+Stop retrieving when all four are clear:
+
+- requested outcome;
+- owning design seam;
+- relevant constraints and invariants;
+- verification path.
+
+Escalate again only when implementation or verification reveals new uncertainty.

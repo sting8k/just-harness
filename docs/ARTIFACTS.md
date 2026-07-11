@@ -4,16 +4,16 @@ Harness keeps the number of artifact types small. Do not invent a new type for e
 
 ## Core Rule
 
-- One packet/file by default.
+- Work directly when no durable artifact is useful.
+- When a packet is needed, start with one file.
 - Use a folder only when the packet is large, repeated, or needs sibling subfiles.
-- Root docs and one nested level are the normal band.
 
 ## Artifact Bands
 
 | Band | Purpose | Examples |
 | --- | --- | --- |
 | Policy docs | Standing operating rules for the framework | `HARNESS.md`, `FEATURE_INTAKE.md`, `CONTEXT_RULES.md`, `GUARDRAILS.md` |
-| Work packets | The default unit of work | `US-001-short-title.md`, high-risk packet folders, initiative notes |
+| Work packets | Durable acceptance, coordination, and handoff when needed | `US-001-short-title.md`, high-risk packet folders, initiative notes |
 | Durable records | Rationale, proof, friction, state | decisions, traces, backlog, test matrix |
 | Templates | Reusable shapes for new work | `docs/templates/*` |
 

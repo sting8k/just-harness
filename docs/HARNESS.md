@@ -1,74 +1,64 @@
 # Harness
 
-The project goal is to provide a reusable operating harness that helps humans and agents turn intent into safe, validated work.
+Harness is a repository-level operating layer that helps humans and agents turn intent into safe, validated work. It supplies durable context and mechanical feedback where those improve the outcome; it does not prescribe reasoning the agent can perform directly.
 
-This repository is the framework surface. Changing these docs changes the framework itself.
-
-## Operating Model
+## Default Flow
 
 ```text
-User input
-  -> Intake / Warmup
-      -> Classify
-      -> Map context
-      -> Build work packet
-  -> Execute
-  -> Verify
-  -> Persist learning
-  -> Next intent
+Understand -> Implement -> Verify -> Report
 ```
 
-Intake warms the agent up. Classify chooses the kind of work. Map context chooses what to read. Build work packet turns the request into a bounded contract.
+1. Understand the requested outcome, relevant design, constraints, and likely proof.
+2. Implement the smallest change that fits the design.
+3. Run focused proof and adjacent regression checks appropriate to the risk.
+4. Report the outcome, evidence, and any unverified gap.
 
-## Contract Layers
+Add process or durable records only when they preserve knowledge across sessions, coordinate actors, or prevent a recurring failure.
 
-- **Intake contract**: what this is, how risky it is, and how much context to load.
-- **Work contract**: goal, scope, non-goals, constraints, affected surfaces, and proof.
-- **Proof contract**: what must pass before the work can close.
-- **Persistence contract**: what must survive as guardrail, decision, trace, backlog item, or harness delta.
+## Proportional Structure
 
-## Output Types
+### Direct work
 
-Every task may produce one or both of these durable outcome types:
+Read-only questions, status checks, trivial commands, and routine narrow changes can proceed directly. Read the affected source and nearby contract, run focused checks, and report concisely. No intake, work packet, decision, or trace is required solely because a file changed.
 
-1. **Work delta**: docs, code, tests, findings, tasks, checklists, or evidence that move the selected work forward.
-2. **Harness delta**: policy docs, templates, validation expectations, backlog items, guardrails, or decisions that improve the framework.
+### Work packets
 
-## Harness v0 Scope
+Create or update one work packet when at least one of these applies:
 
-Harness v0 includes:
+- acceptance criteria need durable tracking;
+- work spans sessions or actors;
+- several independent steps need coordination;
+- risk or uncertainty makes an explicit contract useful.
 
-- Agent entrypoint.
-- Empty product/work documentation structure.
-- Intake/warmup and risk lanes.
-- Story templates.
-- Decision templates.
-- Validation templates.
-- Test matrix.
-- Harness growth backlog.
-- Durable layer: SQLite database and CLI for operational records.
+Keep one markdown file by default. Add sections such as `Checklist`, `Findings`, `Tasks`, and `Evidence` instead of inventing new artifact types. Split into a folder only when the packet genuinely needs sibling files.
 
-Harness v0 deliberately excludes:
+### Decisions
 
-- A project-specific `SPEC.md`.
-- Pre-sliced product domains.
-- A locked application stack.
-- App source scaffolding.
-- Package scripts.
-- Test runner config.
-- CI workflows.
+Record a durable decision when future work must inherit a consequential choice about behavior, architecture, authorization, data ownership, public contracts, or validation requirements. Routine implementation choices do not need decision records.
 
-Those arrive only when a selected work packet needs them.
+### Traces
+
+Record a trace when durable execution evidence, failure attribution, benchmark/release review, or handoff is useful. Keep it evidence-focused. Do not restate information already clear from the diff or test output unless the context is needed to interpret it. See `docs/TRACE_SPEC.md`.
+
+## Risk and Proof
+
+Use `docs/FEATURE_INTAKE.md` when risk is not obvious or when durable classification helps coordination. Lanes guide proof depth; they do not represent business priority.
+
+- **Tiny**: focused check for a narrow, low-risk change.
+- **Normal**: direct behavior plus relevant regression checks.
+- **High-risk**: explicit contract and validation evidence; ask before implementation when direction is ambiguous.
+
+Never claim behavior works without supporting evidence. If proof is unavailable, too expensive, skipped, or failing, say so.
+
+## Context Retrieval
+
+Read the smallest source that answers the current question. `docs/CONTEXT_RULES.md` contains retrieval triggers for architecture, security, durable records, validation, and other specialized work. Stable policy docs are references, not a mandatory reading sequence.
 
 ## Durable Layer
 
-Policy docs describe how to work. The durable layer stores what happened.
+Policy docs describe how to work. Optional operational records live in the local, gitignored `harness.db`, managed by the Rust CLI at `scripts/bin/harness-cli` on macOS/Linux or `scripts/bin/harness-cli.exe` on Windows. The versioned schema is under `scripts/schema/`.
 
-Operational data — intake classifications, work packet status, decision outcomes, backlog items, and execution traces — lives in a SQLite database (`harness.db`) managed by the Rust Harness CLI at `scripts/bin/harness-cli`. Agents and humans should use that binary for Harness work. The database is local to each project instance and `.gitignore`d. The schema is version-controlled under `scripts/schema/`.
-
-This separation keeps policy docs stable and human-readable while giving agents a structured, queryable record of operational state. It also prepares the harness for future observability and automated evolution without adding more markdown files.
-
-Initialize the database if it does not exist:
+Initialize it when durable records or CLI-backed queries are needed:
 
 ```bash
 scripts/bin/harness-cli init
@@ -80,95 +70,46 @@ Common commands:
 scripts/bin/harness-cli intake  --type <type> --summary <text> --lane <lane> --context <paths> --packet <id>
 scripts/bin/harness-cli story   add --id <id> --title <text> --lane <lane>
 scripts/bin/harness-cli story   update --id <id> --status <status>
-scripts/bin/harness-cli story   update --id <id> --unit 1 --integration 1 --e2e 0 --platform 0
 scripts/bin/harness-cli story   verify <id>
 scripts/bin/harness-cli decision add --id <id> --title <text> --doc docs/decisions/<file>.md
 scripts/bin/harness-cli guardrail add --guardrail "<rule>" --why "<reason>"
-scripts/bin/harness-cli guardrail list --active
 scripts/bin/harness-cli trace   --summary <text> --outcome <outcome>
-scripts/bin/harness-cli score-trace
+scripts/bin/harness-cli backlog add --title "<short name>" --pain "<what was hard>"
 scripts/bin/harness-cli query   matrix
-scripts/bin/harness-cli query   matrix --numeric
 scripts/bin/harness-cli query   guardrails
 scripts/bin/harness-cli query   backlog
 scripts/bin/harness-cli query   stats
-scripts/bin/harness-cli --version
 ```
+
+Use the CLI for a record only when that record is useful. Do not create records to satisfy a sequence.
 
 ## Source Hierarchy
 
 ```text
 User input or supplied spec
-  input material for the first buildout or for future changes
+  current requested outcome
 
 docs/product/*
-  current work contract derived from accepted input
+  accepted product and work contracts
 
 docs/stories/*
-  work packets and historical evidence
+  durable work packets and evidence when needed
 
 docs/decisions/*
-  why the contract changed
+  consequential rationale future work must inherit
 
 docs/GUARDRAILS.md
-  durable project directives
+  standing project directives
 
-docs/ARTIFACTS.md
-  naming and folder rules
-
-scripts/bin/harness-cli query matrix
-  behavior-to-proof control panel backed by the durable layer
+docs/TEST_MATRIX.md or `harness-cli query matrix`
+  behavior-to-proof expectations
 ```
 
-Before implementation, work docs describe intent. After implementation, the work contract plus executable tests become the living contract.
+After implementation, accepted contracts plus executable tests are the living contract. Do not grow a monolithic spec when smaller owned docs are clearer.
 
-## Work Packet Rule
+## Mechanical Verification
 
-Default unit of work is one work packet. Keep it as a single markdown file first. Split into a folder only when the packet becomes large, repeated, or needs sibling subfiles.
-
-Use the same packet shape for product changes, audits, inventories, spikes, migrations, and harness improvements. Read-heavy packets can add `Checklist`, `Findings`, `Tasks`, and `Evidence` sections instead of introducing new artifact types.
-
-## Spec Lifecycle
-
-Harness v0 starts without a tracked project spec. When the human provides a specification, treat it as input material, not as a permanent operating manual. Use it to populate work packets, product docs, decisions, and validation expectations during the first buildout.
-
-After the specification has been decomposed, do not keep extending it as the living plan. Ongoing work should update the smaller docs, packets, durable proof records, and decisions.
-
-## Growth Rule
-
-The harness grows from friction.
-
-When an agent is confused, repeats manual reasoning, needs a new validation command, discovers a missing rule, or sees a recurring failure pattern, it must either improve the harness directly or record the friction:
-
-```bash
-scripts/bin/harness-cli backlog add --title "<short name>" --pain "<what was hard>"
-```
-
-Use the backlog outcome loop for improvements expected to change agent behavior or validation results.
-
-The `harness_friction` field on traces also captures per-task friction so patterns can be queried later.
-
-Backlog risk uses the same lane vocabulary as intake and stories: `tiny`, `normal`, or `high-risk`. Use `--risk tiny` for low-risk follow-up items; `low` is not a valid lane.
-
-## Task Loop
-
-Use this loop for repo-changing work: implementation, docs edits, harness updates, validation changes, or any task that should leave durable evidence. For read-only questions, status checks, or trivial commands, skip durable records and say why.
-
-1. Classify the request with `docs/FEATURE_INTAKE.md`.
-2. Record a fresh classification with `scripts/bin/harness-cli intake`; prefer `--context` for context-map paths and `--packet` when linking a work packet. Do not reuse a previous task's intake as current evidence.
-3. Create or update a story when the work changes behavior, acceptance criteria, multiple files, or multiple steps. Tiny direct patches can skip a story when the final trace explains why.
-4. Locate the affected docs and packet files.
-5. Check proof status with `scripts/bin/harness-cli query matrix`.
-6. Work only inside the selected lane: tiny, normal, or high-risk.
-7. Verify before claiming behavior works. If proof is missing, too expensive, or failing, report the behavior as unverified, skipped, partial, or failed instead of completed.
-8. Before finishing, ask whether work truth, validation expectations, guardrails, architecture rules, repeated failure patterns, or next-agent instructions changed; record new durable guardrails with `scripts/bin/harness-cli guardrail add`.
-9. Record a fresh trace with `scripts/bin/harness-cli trace`, using `docs/TRACE_SPEC.md` for the expected trace tier and field depth. Include proof and `harness_friction`; use `none` only after checking for friction.
-10. Review the trace score printed by `scripts/bin/harness-cli trace`; use `scripts/bin/harness-cli score-trace --id <id>` only when re-checking a specific historical trace.
-11. If harness friction was found, either fix it directly or record it with `scripts/bin/harness-cli backlog add`.
-
-## Story Verification
-
-Stories may carry a mechanical proof command:
+A work packet may carry a proof command:
 
 ```bash
 scripts/bin/harness-cli story add --id US-012 --title "Story verification" --lane normal --verify "cargo test --workspace"
@@ -176,8 +117,8 @@ scripts/bin/harness-cli story update --id US-012 --verify "cargo test --workspac
 scripts/bin/harness-cli story verify US-012
 ```
 
-`story verify` runs the command from the repository root, records `last_verified_at` and `last_verified_result`, and exits 0 on pass or 1 on fail. When `trace --story <id>` links to a story whose verification command has never passed, the trace still records but prints an advisory warning before close.
+`story verify` runs the configured command from the repository root, records the result, and exits nonzero on failure. Prefer this mechanical seam over adding prose reminders. Record proof booleans with numeric values (`1` or `0`); use `query matrix --numeric` when copying matrix values.
 
-`story verify` accepts only the work packet id. Configure the command with `story add --verify` or `story update --verify`. Record proof booleans with `story update`, using numeric values: `1` means yes and `0` means no. The Rust CLI rejects text values such as `yes` and `no`.
+## Harness Growth
 
-Use `scripts/bin/harness-cli query matrix --numeric` when copying proof values into story updates.
+Improve the harness when a recurring failure or repeated manual step provides evidence that a small mechanism would help. If the fix is out of scope and worth preserving, add a backlog item. Do not turn one-off friction into permanent workflow by default.

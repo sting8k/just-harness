@@ -199,18 +199,14 @@ agent_shim_block() {
 <!-- HARNESS:BEGIN -->
 ## Harness
 
-This repo uses Harness. Before work, read:
+Default flow: understand the request and relevant design, implement the smallest
+fitting change, verify it, and report the result and any unverified gaps.
 
-- `README.md`
-- `docs/HARNESS.md`
-- `docs/FEATURE_INTAKE.md`
-- `docs/CONTEXT_RULES.md`
-- `docs/GUARDRAILS.md`
-- `docs/ARTIFACTS.md`
-- `scripts/bin/harness-cli query matrix`
+Start with `docs/HARNESS.md`. Retrieve other Harness docs only when its triggers
+or the task require them; do not load the full framework by default.
 
-Use the Rust Harness CLI at `scripts/bin/harness-cli` as the main operational
-tool.
+Use the Rust Harness CLI at `scripts/bin/harness-cli` for durable records and
+mechanical checks when they are useful.
 <!-- HARNESS:END -->
 EOF
 }
@@ -221,26 +217,13 @@ claude_shim_block() {
 ## Harness
 
 Claude Code loads this file into every session, but it does not auto-load
-`AGENTS.md`. The bare `@` lines below import the core Harness context at
-context-load time. Never wrap them in backticks; that disables the import.
+`AGENTS.md`. The bare `@` line imports the small Harness entrypoint. Never wrap
+it in backticks; that disables the import.
 
 @AGENTS.md
 
-@docs/HARNESS.md
-
-@docs/FEATURE_INTAKE.md
-
-@docs/CONTEXT_RULES.md
-
-@docs/GUARDRAILS.md
-
-@docs/ARTIFACTS.md
-
-Also run `scripts/bin/harness-cli query matrix` before starting work.
-
-Lane-dependent context (`README.md`, `docs/ARCHITECTURE.md`, product docs,
-stories, decisions) is intentionally not imported — read it per lane, as
-`docs/CONTEXT_RULES.md` prescribes.
+Follow the entrypoint's retrieval guidance. Load Harness policy, contracts,
+stories, decisions, and proof expectations only when the task requires them.
 <!-- HARNESS:END -->
 EOF
 }

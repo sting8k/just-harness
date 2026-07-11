@@ -10,15 +10,15 @@ The repo-level operating system that tells humans and agents how to turn intent 
 
 ## Work Packet
 
-The default unit of work: a single file or folder that captures goal, scope, context map, proof, and evidence for one bounded piece of work.
+An optional durable file or folder that captures goal, scope, proof, and evidence when bounded work needs tracking, coordination, or handoff.
 
 ## Story Packet
 
-A work packet expressed through the `story` surface. This is the default shape for bounded work.
+A work packet expressed through the optional `story` surface when bounded work needs durable tracking.
 
 ## Intake / Warmup
 
-The warmup and classification step that turns a prompt into a work packet shape before implementation begins.
+Lightweight classification of relevant context, semantic risk, and expected proof; record it durably only when useful.
 
 ## Classify
 
@@ -26,7 +26,7 @@ Choose the kind of work and the depth/risk lane.
 
 ## Map Context
 
-Choose the smallest set of documents and files that must be loaded before work begins.
+Retrieve the smallest set of documents and files needed for the current decision or phase.
 
 ## Guardrail
 
@@ -54,4 +54,4 @@ A work delta that changes product-facing behavior, such as code, tests, API shap
 
 ## Trace
 
-A structured record of what an agent did during a task: actions taken, files read, files changed, decisions made, errors encountered, outcome, and any harness friction discovered.
+An optional structured execution record used when evidence, failure attribution, analysis, or handoff should persist.
