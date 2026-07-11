@@ -32,6 +32,12 @@ Create or update one work packet when at least one of these applies:
 
 Keep one markdown file by default. Add sections such as `Checklist`, `Findings`, `Tasks`, and `Evidence` instead of inventing new artifact types. Split into a folder only when the packet genuinely needs sibling files.
 
+### Coordination boundaries
+
+When work crosses a session or actor boundary, use the packet as the handoff contract. Keep the objective, scope, acceptance criteria, current state, evidence, open gaps, and next owner or action current. Reconcile that state before delegation, after delegated work returns, at session end, and before closing the parent work.
+
+A delegated result is provisional until the integrating actor verifies the parent acceptance criteria and integration. Do not duplicate the full packet for every bounded subtask. Mark work `implemented` only after that verification; record blockers and the next action instead of claiming completion, and mark absorbed or no-longer-needed work `retired`.
+
 ### Decisions
 
 Record a durable decision when future work must inherit a consequential choice about behavior, architecture, authorization, data ownership, public contracts, or validation requirements. Routine implementation choices do not need decision records.

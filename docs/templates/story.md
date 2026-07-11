@@ -2,7 +2,9 @@
 
 ## Status
 
-planned
+planned | in_progress | implemented | changed | retired
+
+Use `implemented` only after the integrating actor verifies the acceptance criteria. Use `retired` when the work is absorbed or no longer needed.
 
 ## Lane
 
@@ -29,6 +31,16 @@ Out of scope:
 - Affected code or surfaces:
 - Related decisions:
 - Guardrails:
+
+## Coordination / Handoff
+
+Use this section only when work crosses a session or actor boundary.
+
+- Integrating owner:
+- Delegated scope and actor:
+- Current state:
+- Next action or owner:
+- Blockers or open gaps:
 
 ## Acceptance / Proof
 

@@ -35,7 +35,7 @@ For structural or high-risk work, additionally retrieve the relevant architectur
 | Structural boundary changes | Read `docs/ARCHITECTURE.md` and relevant decisions before choosing the seam. |
 | Creating or reshaping artifacts | Read `docs/ARTIFACTS.md` and only the template being used. |
 | Unclear proof | Read `docs/TEST_MATRIX.md` or run `scripts/bin/harness-cli query matrix`; inspect existing tests before inventing new procedure. |
-| Work spans sessions or actors | Create or update one packet under `docs/stories/` and keep the current acceptance, status, and evidence useful for handoff. |
+| Work spans sessions or actors, including delegation | Create or update one packet under `docs/stories/`; before handoff record current acceptance, state, evidence, open gaps, and the next owner or action. |
 | Consequential choice must persist | Read relevant prior decisions and record a new decision if they do not already settle it. |
 | Recurring harness friction | Read `docs/HARNESS_BACKLOG.md`; fix the shared seam or record a backlog item when out of scope. |
 | Trace is useful for review, release, benchmark, or failure attribution | Read `docs/TRACE_SPEC.md` before recording it. |
@@ -56,7 +56,7 @@ Use acceptance criteria and executable proof. Re-read only evidence needed to ju
 
 ### Report or hand off
 
-Summarize the outcome, proof, and unresolved gaps. Create or update durable records only when another session or actor will benefit; do not duplicate the diff or raw test log.
+Summarize the outcome, proof, and unresolved gaps. When handing work off, update the existing packet and treat delegated completion as provisional until the integrating actor verifies the parent acceptance criteria. Create durable records only when another session or actor will benefit; do not duplicate the diff or raw test log.
 
 ## Stop Rule
 
