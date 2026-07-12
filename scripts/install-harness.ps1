@@ -360,6 +360,7 @@ $files = @(
     "docs/decisions/0004-sqlite-durable-layer.md",
     "docs/decisions/0005-prebuilt-rust-harness-cli.md",
     "docs/decisions/0006-phase-4-benchmark-triage.md",
+    "docs/decisions/0007-lightweight-completion-contract.md",
     "docs/decisions/README.md",
     "docs/demo/README.md",
     "docs/product/README.md",
