@@ -24,8 +24,10 @@ Supported platform labels:
 
   aarch64-apple-darwin      -> macos-arm64
   x86_64-apple-darwin       -> macos-x64
-  x86_64-unknown-linux-gnu  -> linux-x64
-  aarch64-unknown-linux-gnu -> linux-arm64
+  x86_64-unknown-linux-gnu   -> linux-x64
+  x86_64-unknown-linux-musl  -> linux-x64
+  aarch64-unknown-linux-gnu  -> linux-arm64
+  aarch64-unknown-linux-musl -> linux-arm64
   x86_64-pc-windows-msvc    -> windows-x64
 EOF
 }
@@ -78,8 +80,8 @@ fi
 case "$triple" in
   aarch64-apple-darwin) platform="macos-arm64" ;;
   x86_64-apple-darwin) platform="macos-x64" ;;
-  x86_64-unknown-linux-gnu) platform="linux-x64" ;;
-  aarch64-unknown-linux-gnu) platform="linux-arm64" ;;
+  x86_64-unknown-linux-gnu|x86_64-unknown-linux-musl) platform="linux-x64" ;;
+  aarch64-unknown-linux-gnu|aarch64-unknown-linux-musl) platform="linux-arm64" ;;
   x86_64-pc-windows-msvc) platform="windows-x64" ;;
   *) fail "Unsupported release target: $triple" ;;
 esac
