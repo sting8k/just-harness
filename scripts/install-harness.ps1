@@ -70,7 +70,8 @@ function Merge-Gitignore([string]$Target) {
         "harness.db-wal",
         "harness.db-shm",
         "scripts/bin/harness-cli",
-        "scripts/bin/harness-cli.exe"
+        "scripts/bin/harness-cli.exe",
+        ".pi"
     )
 
     $existing = if (Test-Path $Target) { Get-Content -LiteralPath $Target } else { @() }

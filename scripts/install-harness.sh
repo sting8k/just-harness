@@ -155,13 +155,15 @@ local rules="harness.db
 harness.db-wal
 harness.db-shm
 scripts/bin/harness-cli
-scripts/bin/harness-cli.exe"
+scripts/bin/harness-cli.exe
+.pi"
 
 if grep -Fxq "harness.db" "$target" &&
    grep -Fxq "harness.db-wal" "$target" &&
    grep -Fxq "harness.db-shm" "$target" &&
    grep -Fxq "scripts/bin/harness-cli" "$target" &&
-   grep -Fxq "scripts/bin/harness-cli.exe" "$target"; then
+   grep -Fxq "scripts/bin/harness-cli.exe" "$target" &&
+   grep -Fxq ".pi" "$target"; then
     log "skip     .gitignore (harness rules already present)"
     SKIPPED=$((SKIPPED + 1))
     return
