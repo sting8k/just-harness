@@ -20,6 +20,15 @@ func TestValidateEnums(t *testing.T) {
 	if err := s.Validate(); err == nil {
 		t.Fatal("bad lane accepted")
 	}
+	for _, lv := range []Verify{{Result: "fail", ExitCode: 0}, {Result: "pass", ExitCode: 1}} {
+		lv.Command, lv.At = "c", "x"
+		if err := story("normal", "c", &lv).Validate(); err == nil {
+			t.Errorf("result/exit_code mismatch accepted: %+v", lv)
+		}
+	}
+	if err := story("normal", "c", &Verify{Result: "fail", ExitCode: 124, Command: "c", At: "x"}).Validate(); err != nil {
+		t.Errorf("timeout fail rejected: %v", err)
+	}
 	d := &Decision{V: 1, ID: "US-k3f9", Title: "t", Status: "accepted", CreatedAt: "x", UpdatedAt: "x"}
 	if err := d.Validate(); err == nil {
 		t.Fatal("story id accepted as decision id")

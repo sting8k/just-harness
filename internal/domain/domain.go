@@ -172,6 +172,9 @@ func (s *Story) Validate() error {
 		if lv.Command == "" || lv.At == "" {
 			return fmt.Errorf("last_verify: command and at are required")
 		}
+		if (lv.Result == "pass") != (lv.ExitCode == 0) {
+			return fmt.Errorf("last_verify: result %q disagrees with exit_code %d", lv.Result, lv.ExitCode)
+		}
 	}
 	return nil
 }
