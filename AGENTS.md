@@ -1,13 +1,15 @@
-# Agent Instructions
+# Agent Instructions (just-harness dev repo)
 
-Add project-specific agent instructions here.
+This repo builds `just-harness-cli`. It is not itself an installed harness.
 
-<!-- HARNESS:BEGIN -->
-## Harness
-
-Default flow: understand the request and relevant design, implement the smallest fitting change, verify it, then reconcile affected documentation, durable decisions, and required evidence before reporting. Clauses that do not apply create no artifact.
-
-Start with `docs/HARNESS.md`. Retrieve other Harness docs only when its triggers or the task require them; do not load the full framework by default.
-
-Use the Rust Harness CLI at `scripts/bin/harness-cli` on macOS/Linux or `scripts/bin/harness-cli.exe` on Windows when the completion contract or task coordination requires durable records or mechanical checks.
-<!-- HARNESS:END -->
+- `harness/` is the payload embedded into the binary and installed into other repos. Everything in
+  it ships to users; keep it generic and small. Harness-internal rationale goes in `DECISIONS.md`.
+- Code layout: `cmd/just-harness-cli` (entry), `internal/domain` (pure types and invariants),
+  `internal/store` (records, IDs, prose), `internal/cli` (commands), `internal/install` (plan-first installer).
+- Invariants that must not regress: records written only by the CLI, with deterministic serialization
+  and atomic writes; the completion gate rule is shared by the CLI and `check`; a refused or dry-run
+  `install` writes nothing; `install` never overwrites existing records.
+- Go 1.24+, standard library only. Do not add dependencies without a decision in `DECISIONS.md`.
+- Proof: `go vet ./... && go test ./...`. For install or CLI behavior, also smoke-test a built binary
+  in a temporary git repo.
+- Changing payload wording changes agent behavior. Prefer neutral, proportional wording; see D1 and D7.
