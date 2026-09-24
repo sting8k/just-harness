@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 // newRepo creates an empty harness root and points the CLI at it.
@@ -118,15 +119,24 @@ func TestStoryGateAndVerify(t *testing.T) {
 	}
 }
 
+// A timed-out verify must kill the whole process tree: an orphaned child
+// would keep running and hold the repo dir (Windows TempDir cleanup fails).
 func TestStoryVerifyTimeout(t *testing.T) {
-	newRepo(t)
-	slow := "sleep 5"
+	root := newRepo(t)
+	slow := "sleep 30 | sleep 30"
 	if runtime.GOOS == "windows" {
-		slow = "ping -n 6 127.0.0.1 >NUL"
+		slow = "ping -n 30 127.0.0.1 >NUL & ping -n 30 127.0.0.1 >NUL"
 	}
 	id := mustRun(t, "story", "add", "--title", "slow", "--lane", "tiny", "--no-packet", "--verify", slow)
-	if code, _, _ := run(t, "story", "verify", "--id", id, "--timeout", "200ms"); code != timeoutExitCode {
+	start := time.Now()
+	if code, _, _ := run(t, "story", "verify", "--id", id, "--timeout", "300ms"); code != timeoutExitCode {
 		t.Fatalf("timeout exit %d", code)
+	}
+	if d := time.Since(start); d > 10*time.Second {
+		t.Fatalf("verify returned after %s; children kept it alive", d)
+	}
+	if got := readFile(t, root, ".harness/stories/"+id+".json"); !strings.Contains(got, `"result": "fail"`) || !strings.Contains(got, `"exit_code": 124`) {
+		t.Fatalf("timeout not recorded as fail/124:\n%s", got)
 	}
 }
 

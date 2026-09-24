@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"runtime"
 	"strings"
 	"time"
 
@@ -126,7 +125,7 @@ func storyVerify(e *env, args []string) error {
 		ctx, cancel = context.WithTimeout(ctx, limit)
 		defer cancel()
 	}
-	cmd := shellCommand(ctx, s.Verify)
+	cmd := shellCommand(ctx, s.Verify, limit > 0)
 	cmd.Dir = e.st.Root
 	cmd.Stdout, cmd.Stderr = e.stdout, e.stderr
 	cmd.WaitDelay = 2 * time.Second // don't hang on grandchildren holding the pipes
@@ -158,13 +157,6 @@ func storyVerify(e *env, args []string) error {
 		return exitCode(code)
 	}
 	return nil
-}
-
-func shellCommand(ctx context.Context, command string) *exec.Cmd {
-	if runtime.GOOS == "windows" {
-		return exec.CommandContext(ctx, "cmd", "/C", command)
-	}
-	return exec.CommandContext(ctx, "sh", "-c", command)
 }
 
 // gitState returns HEAD's short sha and whether the tree has uncommitted
