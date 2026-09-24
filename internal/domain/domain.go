@@ -226,24 +226,37 @@ func (s *Story) PassMatches() bool {
 	return s.Verify != "" && s.LastVerify != nil && s.LastVerify.Result == "pass" && s.LastVerify.Command == s.Verify
 }
 
-// CheckImplemented is the gate rule (I1/I2), shared by the CLI and `check`:
-// an implemented story needs a waiver, a matching pass, or — outside
-// high_risk — no verify command at all.
-func (s *Story) CheckImplemented() error {
+// GateIssue is the gate rule (I1/I2), shared by the CLI and `check`: an
+// implemented story needs a waiver, a matching pass, or — outside high_risk —
+// no verify command at all. Returns "" when satisfied, else a short reason.
+func (s *Story) GateIssue() string {
 	switch {
 	case s.Waiver != "", s.PassMatches():
-		return nil
+		return ""
 	case s.Verify == "" && s.Lane == "high_risk":
-		return fmt.Errorf("%s: high_risk story has no verify command; set --verify and pass it, or --waive \"reason\" (I2)", s.ID)
+		return "high_risk story has no verify command (I2)"
 	case s.Verify == "":
-		return nil
+		return ""
 	case s.LastVerify == nil:
-		return fmt.Errorf("%s: no verify run recorded; run `story verify --id %s` or --waive \"reason\" (I1)", s.ID, s.ID)
+		return "no verify run recorded (I1)"
 	case s.LastVerify.Command != s.Verify:
-		return fmt.Errorf("%s: verify changed since last run; re-run `story verify --id %s` or --waive \"reason\" (I1)", s.ID, s.ID)
+		return "verify changed since last run (I1)"
 	default:
-		return fmt.Errorf("%s: last verify failed (exit %d); fix and re-run `story verify --id %s`, or --waive \"reason\" (I1)", s.ID, s.LastVerify.ExitCode, s.ID)
+		return fmt.Sprintf("last verify failed, exit %d (I1)", s.LastVerify.ExitCode)
 	}
+}
+
+// CheckImplemented wraps GateIssue with how to fix it.
+func (s *Story) CheckImplemented() error {
+	issue := s.GateIssue()
+	if issue == "" {
+		return nil
+	}
+	fix := fmt.Sprintf("run `story verify --id %s` until it passes", s.ID)
+	if s.Verify == "" {
+		fix = "set --verify and pass it"
+	}
+	return fmt.Errorf("%s: %s; %s, or pass --waive \"reason\"", s.ID, issue, fix)
 }
 
 // StoryChange is the requested mutation of `story update`; nil = unchanged.

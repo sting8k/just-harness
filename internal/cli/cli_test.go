@@ -147,3 +147,86 @@ func TestDecisionGuardrailTrace(t *testing.T) {
 		t.Fatalf("trace:\n%s", got)
 	}
 }
+
+func writeFile(t *testing.T, root, rel, content string) {
+	t.Helper()
+	p := filepath.Join(root, filepath.FromSlash(rel))
+	os.MkdirAll(filepath.Dir(p), 0o755)
+	if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCheckFlagsHandEdits(t *testing.T) {
+	root := newRepo(t)
+	id := mustRun(t, "story", "add", "--title", "Pagination", "--lane", "normal", "--verify", "exit 0")
+	d := mustRun(t, "decision", "add", "--title", "Keyset", "--story", id)
+	if code, out, _ := run(t, "check"); code != 0 {
+		t.Fatalf("clean repo flagged:\n%s", out)
+	}
+
+	rec := ".harness/stories/" + id + ".json"
+	// Hand edit: implemented without a pass (I1), with CRLF line endings.
+	orig := readFile(t, root, rec)
+	edited := strings.ReplaceAll(strings.Replace(orig, `"planned"`, `"implemented"`, 1), "\n", "\r\n")
+	writeFile(t, root, rec, edited)
+	// Duplicate id (e.g. merged copy under another name), broken doc path,
+	// dangling reference, and invalid JSON (merge conflict markers).
+	writeFile(t, root, ".harness/stories/US-zzzz.json", orig)
+	os.Remove(filepath.Join(root, "docs", "decisions", d+"-keyset.md"))
+	writeFile(t, root, ".harness/traces/T-0000.json",
+		`{"v":1,"id":"T-0000","summary":"s","outcome":"completed","story":"US-9999","created_at":"x"}`)
+	writeFile(t, root, ".harness/guardrails/G-1111.json", "<<<<<<< HEAD\n{}\n")
+
+	code, out, _ := run(t, "check")
+	if code != 1 {
+		t.Fatalf("check exit %d, want 1\n%s", code, out)
+	}
+	for _, want := range []string{
+		id + ".json: implemented but no verify run recorded (I1)",
+		"US-zzzz.json: id \"" + id + "\" does not match the file name",
+		"duplicate id " + id,
+		"doc docs/decisions/" + d + "-keyset.md does not exist",
+		"T-0000.json: story US-9999 does not exist",
+		"G-1111.json: invalid JSON",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("check output missing %q:\n%s", want, out)
+		}
+	}
+	if _, status, _ := run(t, "query", "status"); !strings.Contains(status, "Needs attention:     "+id+" [normal] implemented — no verify run recorded (I1)") {
+		t.Errorf("status does not surface the I1 violation:\n%s", status)
+	}
+}
+
+func TestQueryStatusAndMarkdown(t *testing.T) {
+	newRepo(t)
+	mustRun(t, "guardrail", "add", "--rule", "Routes must re-check the user", "--why", "deleted users")
+	open := mustRun(t, "story", "add", "--title", "Pagination", "--lane", "normal")
+	mustRun(t, "story", "update", "--id", open, "--status", "in_progress")
+	waived := mustRun(t, "story", "add", "--title", "a | b", "--lane", "high_risk", "--no-packet")
+	mustRun(t, "story", "update", "--id", waived, "--status", "implemented", "--waive", "no e2e env")
+	mustRun(t, "decision", "add", "--title", "JWT auth strategy")
+
+	_, out, _ := run(t, "query", "status")
+	for _, want := range []string{
+		"Guardrails (active): G-",
+		"Open stories:        " + open + " [normal] in_progress — Pagination   (docs/stories/" + open + "-pagination.md)",
+		"Needs attention:     " + waived + ` [high_risk] implemented — WAIVED: "no e2e env"`,
+		"Proposed decisions:  D-",
+		"Problems (check):    none",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("status missing %q:\n%s", want, out)
+		}
+	}
+
+	_, md, _ := run(t, "query", "stories", "--status", "implemented", "--md")
+	want := "| " + waived + ` | high_risk | implemented | WAIVED: "no e2e env" | a \| b |  |`
+	if !strings.Contains(md, want) || strings.Contains(md, open) {
+		t.Fatalf("markdown:\n%s\nwant row %s", md, want)
+	}
+	if code, _, _ := run(t, "query", "stories", "--status", "done"); code != 2 {
+		t.Fatal("bad --status accepted")
+	}
+}
