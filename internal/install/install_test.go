@@ -163,7 +163,7 @@ func TestMergeUpgrade(t *testing.T) {
 	if read(t, target, "docs/HARNESS.md") != "customized" || read(t, target, ".harness/stories/US-k3f9.json") != "{record}" {
 		t.Fatal("merge overwrote an existing file or record")
 	}
-	if read(t, target, ".gitignore") != "node_modules/\n# just-harness\n.harness/bin/\n" {
+	if read(t, target, ".gitignore") != "node_modules/\n# just-harness\n.harness/bin/\n.harness-backup/\n" {
 		t.Fatalf(".gitignore: %q", read(t, target, ".gitignore"))
 	}
 	if read(t, target, BinaryRel()) != "binary-v2" {

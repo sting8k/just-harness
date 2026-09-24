@@ -14,7 +14,6 @@ func cmdInstall(stdout io.Writer, args []string) error {
 	f.fs.BoolVar(&o.Override, "override", false, "")
 	f.fs.BoolVar(&o.Force, "force", false, "")
 	f.fs.BoolVar(&o.DryRun, "dry-run", false, "")
-	f.fs.BoolVar(&o.RefreshAgentShim, "refresh-agent-shim", false, "")
 	f.fs.BoolVar(&o.Claude, "claude", false, "")
 	var positional []string
 	for {
@@ -33,8 +32,6 @@ func cmdInstall(stdout io.Writer, args []string) error {
 	if o.Merge && o.Override {
 		return inputf("--merge and --override are mutually exclusive")
 	}
-	// Refreshing the AGENTS.md block is what --merge does to an existing AGENTS.md.
-	o.Merge = o.Merge || (o.RefreshAgentShim && !o.Override)
 	o.Target = "."
 	if len(positional) == 1 {
 		o.Target = positional[0]

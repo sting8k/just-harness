@@ -40,7 +40,7 @@ var overridePaths = []string{"AGENTS.md", "docs"}
 
 // lineMergeFiles are never replaced when they exist; missing lines are appended.
 var lineMergeFiles = map[string][]string{
-	".gitignore":     {".harness/bin/"},
+	".gitignore":     {".harness/bin/", ".harness-backup/"},
 	".gitattributes": {".harness/** text eol=lf"},
 }
 
@@ -56,14 +56,13 @@ func BinaryRel() string {
 
 // Options configures one install invocation.
 type Options struct {
-	Target           string
-	Merge            bool
-	Override         bool
-	Force            bool
-	DryRun           bool
-	RefreshAgentShim bool
-	Claude           bool
-	SelfBinary       string // self-copy source override (tests); default os.Executable()
+	Target     string
+	Merge      bool
+	Override   bool
+	Force      bool
+	DryRun     bool
+	Claude     bool
+	SelfBinary string // self-copy source override (tests); default os.Executable()
 }
 
 type actionKind int

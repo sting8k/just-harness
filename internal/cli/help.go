@@ -25,7 +25,7 @@ Environment: HARNESS_REPO_ROOT overrides repo root detection.
 `
 
 var helpCommands = map[string]string{
-	"install": `Usage: just-harness-cli install [path] [--merge|--override] [--force] [--dry-run] [--refresh-agent-shim] [--claude]
+	"install": `Usage: just-harness-cli install [path] [--merge|--override] [--force] [--dry-run] [--claude]
 
 Installs the payload into path (default "."). Plans every write first; a
 refused plan writes nothing. Existing AGENTS.md, docs/ or .harness/ cause a
@@ -36,7 +36,6 @@ refusal unless:
                         then install fresh (.harness/ records are never touched)
   --force               overwrite existing payload files (each backed up first)
   --dry-run             print the plan, write nothing
-  --refresh-agent-shim  refresh the HARNESS block in AGENTS.md
   --claude              also create CLAUDE.md containing @AGENTS.md
 `,
 	"story": `Usage:
